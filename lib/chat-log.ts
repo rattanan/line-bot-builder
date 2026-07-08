@@ -3,6 +3,7 @@ import { QueryResult } from "@/lib/mysql";
 
 interface ChatLog {
   userId: string;
+  botId?: number | null;
   question: string;
   answer: string;
   source: "mysql_faq" | "ai" | "fallback";
@@ -22,10 +23,10 @@ export async function saveChatLog(log: ChatLog): Promise<void> {
   try {
     connection = await pool.getConnection();
     const query = `
-      INSERT INTO chat_log (user_id, user_message, bot_reply, answer_source)
-      VALUES (?, ?, ?, ?)
+      INSERT INTO chat_log (user_id, bot_id, user_message, bot_reply, answer_source)
+      VALUES (?, ?, ?, ?, ?)
     `;
-    await connection.execute(query, [log.userId, log.question, log.answer, log.source]);
+    await connection.execute(query, [log.userId, log.botId ?? null, log.question, log.answer, log.source]);
   } catch (error) {
     console.error("Error saving chat log:", error);
     // Don't throw - chat logging should not break the bot

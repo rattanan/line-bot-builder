@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Line Legal Bot",
-  description: "Legal mediation support bot",
+  title: "Line Bot Builder",
+  description: "Platform for building and managing LINE bots",
 };
 
 export default function RootLayout({

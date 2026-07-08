@@ -10,11 +10,11 @@ export async function GET(_req: NextRequest) {
 // POST /api/faq – create a new FAQ
 export async function POST(req: NextRequest) {
   try {
-    const { question, answer } = await req.json();
+    const { botId, question, answer } = await req.json();
     if (!question || !answer) {
       return NextResponse.json({ error: "question and answer required" }, { status: 400 });
     }
-    const newFAQ = await addFAQ(question, answer);
+    const newFAQ = await addFAQ(Number(botId || 0), question, answer);
     if (!newFAQ) {
       return NextResponse.json({ error: "Failed to create FAQ" }, { status: 500 });
     }

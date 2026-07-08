@@ -1,17 +1,19 @@
 import { NextResponse } from "next/server";
-import { getSessionUserId } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
 
 export async function GET() {
-  const userId = await getSessionUserId();
-  if (!userId) {
+  const user = await getSessionUser();
+  if (!user) {
     return NextResponse.json({ user: null });
   }
 
   return NextResponse.json({
     user: {
-      username: "admin",
-      fullName: "Admin",
-      role: "admin",
+      id: user.id,
+      email: user.email,
+      fullName: user.full_name,
+      role: user.role,
+      emailVerifiedAt: user.email_verified_at,
     },
   });
 }

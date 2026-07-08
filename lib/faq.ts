@@ -6,21 +6,28 @@ import { executeQuery, QueryResult } from "./mysql";
  */
 export type FAQ = {
   id: number;
+  bot_id: number;
   question: string;
   answer: string;
+  is_active: 0 | 1;
   created_at: string;
-  updated_at: string;
+  updated_at: string | null;
 };
 
 /**
  * Get all FAQ entries from MySQL database
  * @returns Array of FAQ objects
  */
-export async function getFAQData(): Promise<FAQ[]> {
+export async function getFAQData(botId?: number): Promise<FAQ[]> {
   try {
-    const result: QueryResult<FAQ> = await executeQuery<FAQ>(
-      "SELECT id, question, answer, created_at, updated_at FROM faq ORDER BY id ASC"
-    );
+    const result: QueryResult<FAQ> = botId
+      ? await executeQuery<FAQ>(
+          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE bot_id = ? ORDER BY id ASC",
+          [botId]
+        )
+      : await executeQuery<FAQ>(
+          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq ORDER BY id ASC"
+        );
     return result.rows;
   } catch (error) {
     console.error("Error fetching FAQ data from MySQL:", error);
@@ -36,7 +43,7 @@ export async function getFAQData(): Promise<FAQ[]> {
 export async function getFAQById(id: number): Promise<FAQ | null> {
   try {
     const result: QueryResult<FAQ> = await executeQuery<FAQ>(
-      "SELECT id, question, answer, created_at, updated_at FROM faq WHERE id = ?",
+      "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE id = ?",
       [id]
     );
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -51,12 +58,17 @@ export async function getFAQById(id: number): Promise<FAQ | null> {
  * @param question - Question text to search for
  * @returns Array of matching FAQ objects
  */
-export async function getFAQByQuestion(question: string): Promise<FAQ[]> {
+export async function getFAQByQuestion(question: string, botId?: number): Promise<FAQ[]> {
   try {
-    const result: QueryResult<FAQ> = await executeQuery<FAQ>(
-      "SELECT id, question, answer, created_at, updated_at FROM faq WHERE question LIKE ? ORDER BY id ASC",
-      [`%${question}%`]
-    );
+    const result: QueryResult<FAQ> = botId
+      ? await executeQuery<FAQ>(
+          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE bot_id = ? AND question LIKE ? AND is_active = 1 ORDER BY id ASC",
+          [botId, `%${question}%`]
+        )
+      : await executeQuery<FAQ>(
+          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE question LIKE ? AND is_active = 1 ORDER BY id ASC",
+          [`%${question}%`]
+        );
     return result.rows;
   } catch (error) {
     console.error(`Error fetching FAQ for question "${question}":`, error);
@@ -71,13 +83,14 @@ export async function getFAQByQuestion(question: string): Promise<FAQ[]> {
  * @returns The newly created FAQ object
  */
 export async function addFAQ(
+  botId: number,
   question: string,
   answer: string
 ): Promise<FAQ | null> {
   try {
     const result: QueryResult<FAQ> = await executeQuery<FAQ>(
-      "INSERT INTO faq (question, answer) VALUES (?, ?)",
-      [question, answer]
+      "INSERT INTO faq (bot_id, question, answer, is_active) VALUES (?, ?, ?, 1)",
+      [botId, question, answer]
     );
 
     if (!result.insertId) {
@@ -103,7 +116,8 @@ export async function addFAQ(
 export async function updateFAQ(
   id: number,
   question?: string,
-  answer?: string
+  answer?: string,
+  isActive?: boolean
 ): Promise<FAQ | null> {
   try {
     // Build dynamic update query
@@ -117,6 +131,10 @@ export async function updateFAQ(
     if (answer) {
       updates.push("answer = ?");
       params.push(answer);
+    }
+    if (typeof isActive === "boolean") {
+      updates.push("is_active = ?");
+      params.push(isActive ? 1 : 0);
     }
 
     if (updates.length === 0) {
@@ -146,4 +164,8 @@ export async function deleteFAQ(id: number): Promise<boolean> {
     console.error(`Error deleting FAQ with id ${id}:`, error);
     return false;
   }
+}
+
+export async function searchFAQsByBot(botId: number, query: string) {
+  return getFAQByQuestion(query, botId);
 }

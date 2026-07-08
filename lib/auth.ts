@@ -1,8 +1,16 @@
 import { createHash, randomBytes, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
+import { executeQuery } from "./mysql";
 
 export const SESSION_COOKIE = "llb_session";
-const SESSION_VALUE = "admin-session";
+
+export type SessionUser = {
+  id: number;
+  email: string;
+  full_name: string;
+  role: "USER" | "ADMIN";
+  email_verified_at: string | null;
+};
 
 export function hashPassword(password: string, salt = randomBytes(16).toString("hex")) {
   const hash = createHash("sha256").update(`${salt}:${password}`).digest("hex");
@@ -14,11 +22,76 @@ export function verifyPassword(password: string, salt: string, expectedHash: str
   return timingSafeEqual(Buffer.from(actualHash, "hex"), Buffer.from(expectedHash, "hex"));
 }
 
-export function createSessionToken() {
-  return SESSION_VALUE;
+export function createToken() {
+  return randomBytes(32).toString("hex");
+}
+
+export function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+export async function setSessionCookie(sessionToken: string) {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    secure: process.env.NODE_ENV === "production",
+  });
+}
+
+export async function clearSessionCookie() {
+  const store = await cookies();
+  store.set(SESSION_COOKIE, "", {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+}
+
+export async function createSession(userId: number) {
+  const token = createToken();
+  const tokenHash = hashToken(token);
+  await executeQuery(
+    "INSERT INTO auth_sessions (user_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 30 DAY))",
+    [userId, tokenHash]
+  );
+  return token;
+}
+
+export async function revokeSession(token: string) {
+  const tokenHash = hashToken(token);
+  await executeQuery("DELETE FROM auth_sessions WHERE token_hash = ?", [tokenHash]);
+}
+
+export async function getSessionUser() {
+  const store = await cookies();
+  const token = store.get(SESSION_COOKIE)?.value;
+  if (!token) return null;
+
+  const tokenHash = hashToken(token);
+  const result = await executeQuery<SessionUser & { token_hash: string }>(
+    `SELECT u.id, u.email, u.full_name, u.role, u.email_verified_at, s.token_hash
+     FROM auth_sessions s
+     INNER JOIN users u ON u.id = s.user_id
+     WHERE s.token_hash = ? AND s.expires_at > NOW()
+     LIMIT 1`,
+    [tokenHash]
+  );
+
+  return result.rows[0] ?? null;
 }
 
 export async function getSessionUserId() {
-  const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE)?.value === SESSION_VALUE ? "admin" : null;
+  const user = await getSessionUser();
+  return user?.id ?? null;
+}
+
+export async function requireAdminUser() {
+  const user = await getSessionUser();
+  if (!user || user.role !== "ADMIN") {
+    return null;
+  }
+  return user;
 }

@@ -1,29 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSessionToken } from "@/lib/auth";
-import { verifyUserCredentials, ensureSeedAdminUser } from "@/lib/users";
+import { createSession, SESSION_COOKIE } from "@/lib/auth";
+import { ensureSeedAdminUser, verifyUserCredentials } from "@/lib/users";
 
 export async function POST(req: NextRequest) {
   try {
     await ensureSeedAdminUser();
-    const { username, password } = await req.json();
+    const { email, password } = await req.json();
 
-    if (!username || !password) {
-      return NextResponse.json({ error: "username and password are required" }, { status: 400 });
+    if (!email || !password) {
+      return NextResponse.json({ error: "email and password are required" }, { status: 400 });
     }
 
-    const user = await verifyUserCredentials(String(username), String(password));
+    const user = await verifyUserCredentials(String(email), String(password));
     if (!user) {
-      return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+    if (!user.emailVerifiedAt) {
+      return NextResponse.json({ error: "Please verify your email first" }, { status: 403 });
     }
 
+    const sessionToken = await createSession(user.id);
     const response = NextResponse.json({
       id: user.id,
-      username: user.username,
+      email: user.email,
       fullName: user.fullName,
       role: user.role,
     });
-
-    response.cookies.set("llb_session", createSessionToken(), {
+    response.cookies.set(SESSION_COOKIE, sessionToken, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",

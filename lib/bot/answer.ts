@@ -16,7 +16,7 @@ const AI_ERROR_MESSAGE =
  */
 async function searchFAQ(question: string): Promise<FAQ | null> {
   try {
-    const faqData = await getFAQData();
+    const faqData = (await getFAQData()).filter((faq) => faq.is_active === 1);
     const normalizedQuestion = normalizeText(question);
 
     let bestMatch: { faq: FAQ; score: number } | null = null;

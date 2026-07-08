@@ -4,6 +4,7 @@ export function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   const isProtectedPage =
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/dashboard") ||
     pathname.startsWith("/chat-test") ||
     pathname.startsWith("/chat-log") ||
     pathname.startsWith("/faq");
@@ -16,7 +17,7 @@ export function middleware(req: NextRequest) {
   if (!isProtectedPage && !isProtectedApi) return NextResponse.next();
 
   const session = req.cookies.get("llb_session")?.value;
-  if (session !== "admin-session") {
+  if (!session) {
     if (isProtectedApi) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -32,6 +33,7 @@ export function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/dashboard/:path*",
     "/chat-test",
     "/chat-log",
     "/faq",

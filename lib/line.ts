@@ -1,21 +1,29 @@
 import { messagingApi } from "@line/bot-sdk";
 
-const client = new messagingApi.MessagingApiClient({
-channelAccessToken:
-process.env.LINE_CHANNEL_ACCESS_TOKEN!,
-});
+export function createLineClient(channelAccessToken: string) {
+  return new messagingApi.MessagingApiClient({
+    channelAccessToken,
+  });
+}
 
 export async function replyMessage(
-replyToken: string,
-text: string
+  channelAccessToken: string,
+  replyToken: string,
+  text: string
 ) {
-await client.replyMessage({
-replyToken,
-messages: [
-{
-type: "text",
-text,
-},
-],
-});
+  if (process.env.NODE_ENV !== "production" && channelAccessToken.startsWith("token-e2e-")) {
+    console.log(`[LINE Mock Reply] ${replyToken}: ${text}`);
+    return;
+  }
+
+  const client = createLineClient(channelAccessToken);
+  await client.replyMessage({
+    replyToken,
+    messages: [
+      {
+        type: "text",
+        text,
+      },
+    ],
+  });
 }

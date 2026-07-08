@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS `topup_orders` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `user_id` BIGINT UNSIGNED NOT NULL,
+  `amount` DECIMAL(10,2) NOT NULL,
+  `credit_amount` INT NOT NULL,
+  `status` ENUM('pending','uploaded','verified','rejected','manual_review','expired') NOT NULL DEFAULT 'pending',
+  `qr_payload` TEXT NOT NULL,
+  `slip_image_url` VARCHAR(512) DEFAULT NULL,
+  `slip_transaction_id` VARCHAR(128) DEFAULT NULL,
+  `slip_transfer_time` DATETIME DEFAULT NULL,
+  `verified_at` DATETIME DEFAULT NULL,
+  `rejected_reason` VARCHAR(255) DEFAULT NULL,
+  `ocr_result` JSON DEFAULT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `expires_at` DATETIME NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_topup_orders_user_id` (`user_id`),
+  KEY `idx_topup_orders_status` (`status`),
+  KEY `idx_topup_orders_expires_at` (`expires_at`),
+  CONSTRAINT `fk_topup_orders_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

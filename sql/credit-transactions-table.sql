@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `credit_transactions` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `bot_id` INT UNSIGNED NULL,
+  `user_id` BIGINT UNSIGNED NULL,
+  `type` ENUM('topup','usage','adjustment') NOT NULL DEFAULT 'usage',
+  `amount` INT NOT NULL,
+  `balance_before` INT NOT NULL DEFAULT 0,
+  `balance_after` INT NOT NULL DEFAULT 0,
+  `ref_type` VARCHAR(32) DEFAULT NULL,
+  `ref_id` BIGINT UNSIGNED DEFAULT NULL,
+  `reason` VARCHAR(255) NOT NULL,
+  `admin_email` VARCHAR(191) DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_credit_transactions_bot_id` (`bot_id`),
+  KEY `idx_credit_transactions_user_id` (`user_id`),
+  KEY `idx_credit_transactions_ref` (`ref_type`, `ref_id`),
+  KEY `idx_credit_transactions_created_at` (`created_at`),
+  CONSTRAINT `fk_credit_transactions_bot_id` FOREIGN KEY (`bot_id`) REFERENCES `bots` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
