@@ -12,7 +12,7 @@ export async function getAdminDashboardSummary() {
       (SELECT COUNT(*) FROM users) AS total_users,
       (SELECT COUNT(*) FROM bots) AS total_bots,
       (SELECT COUNT(*) FROM bots WHERE status = 'suspended') AS suspended_bots,
-      (SELECT COALESCE(SUM(credit_balance), 0) FROM bots) AS total_credits,
+      (SELECT COALESCE(SUM(credit_balance), 0) FROM users) AS total_credits,
       (SELECT COUNT(*) FROM credit_transactions) AS total_transactions`
   );
   return result.rows[0] ?? null;
@@ -35,10 +35,10 @@ export async function getAdminUsers() {
       u.role,
       u.created_at,
       COUNT(DISTINCT b.id) AS bot_count,
-      COALESCE(SUM(b.credit_balance), 0) AS total_credit
+      MAX(u.credit_balance) AS total_credit
      FROM users u
      LEFT JOIN bots b ON b.user_id = u.id
-     GROUP BY u.id
+     GROUP BY u.id, u.email, u.full_name, u.role, u.created_at
      ORDER BY u.id DESC`
   );
   return result.rows;
@@ -65,7 +65,7 @@ export async function getAdminBots() {
       u.full_name AS owner_name,
       b.bot_name,
       b.business_name,
-      b.credit_balance,
+      u.credit_balance AS credit_balance,
       b.status,
       b.created_at,
       MAX(l.created_at) AS last_used_at,
@@ -73,7 +73,7 @@ export async function getAdminBots() {
      FROM bots b
      INNER JOIN users u ON u.id = b.user_id
      LEFT JOIN bot_usage_logs l ON l.bot_id = b.id
-     GROUP BY b.id
+     GROUP BY b.id, b.user_id, u.email, u.full_name, b.bot_name, b.business_name, u.credit_balance, b.status, b.created_at
      ORDER BY b.id DESC`
   );
   return result.rows;
@@ -103,7 +103,7 @@ export async function getAdminBotDetail(botId: number) {
       b.business_name,
       b.business_description,
       b.system_prompt,
-      b.credit_balance,
+      u.credit_balance AS credit_balance,
       b.status,
       b.created_at,
       b.updated_at
@@ -144,10 +144,10 @@ export async function getAdminBotDetail(botId: number) {
     }>(
       `SELECT id, amount, reason, admin_email, created_at
        FROM credit_transactions
-       WHERE bot_id = ?
+       WHERE bot_id = ? OR user_id = ?
        ORDER BY id DESC
        LIMIT 100`,
-      [botId]
+      [botId, bot.user_id]
     ),
   ]);
 

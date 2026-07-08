@@ -53,13 +53,13 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Usage</h1>
-            <p className="text-sm text-zinc-600">Credit balance and usage log for this bot.</p>
+            <p className="text-sm text-zinc-600">Account credit balance and usage log for this bot.</p>
           </div>
           <Link href="/dashboard/bots" className="rounded-full border px-4 py-2 text-sm">Back</Link>
         </div>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <StatCard label="Remaining credit" value={summary?.remaining_credit ?? 0} />
+          <StatCard label="Account credit" value={summary?.remaining_credit ?? 0} />
           <StatCard label="Total messages" value={summary?.total_logs ?? 0} />
           <StatCard label="Blocked" value={summary?.blocked_logs ?? 0} />
           <StatCard label="FAQ hits" value={summary?.faq_hits ?? 0} />

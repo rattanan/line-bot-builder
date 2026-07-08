@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password_salt` VARCHAR(64) DEFAULT NULL,
   `google_sub` VARCHAR(191) DEFAULT NULL,
   `role` ENUM('USER', 'ADMIN') NOT NULL DEFAULT 'USER',
-  `credit_balance` INT NOT NULL DEFAULT 0,
+  `credit_balance` INT NOT NULL DEFAULT 50,
   `email_verified_at` TIMESTAMP NULL DEFAULT NULL,
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT NULL,

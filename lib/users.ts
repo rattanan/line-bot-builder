@@ -8,7 +8,7 @@ export type AppUser = {
   email: string;
   full_name: string;
   role: UserRole;
-  credit_balance?: number;
+  credit_balance: number;
   email_verified_at: string | null;
   created_at: string;
   updated_at: string | null;
@@ -20,28 +20,10 @@ type UserRow = AppUser & {
   google_sub: string | null;
 };
 
-let hasCreditBalanceColumnCache: boolean | null = null;
-
-export async function hasUserCreditBalanceColumn() {
-  if (hasCreditBalanceColumnCache !== null) return hasCreditBalanceColumnCache;
-  const result = await executeQuery<{ column_exists: number }>(
-    `SELECT COUNT(*) AS column_exists
-     FROM information_schema.columns
-     WHERE table_schema = DATABASE()
-       AND table_name = 'users'
-       AND column_name = 'credit_balance'`
-  );
-  hasCreditBalanceColumnCache = (result.rows[0]?.column_exists ?? 0) > 0;
-  return hasCreditBalanceColumnCache;
-}
-
 async function getUserSelectColumns(includeSecret = false) {
   const columns = includeSecret
-    ? "id, email, full_name, password_hash, password_salt, google_sub, role, email_verified_at, created_at, updated_at"
-    : "id, email, full_name, role, email_verified_at, created_at, updated_at";
-  if (await hasUserCreditBalanceColumn()) {
-    return columns.replace("role", "role, credit_balance");
-  }
+    ? "id, email, full_name, password_hash, password_salt, google_sub, role, credit_balance, email_verified_at, created_at, updated_at"
+    : "id, email, full_name, role, credit_balance, email_verified_at, created_at, updated_at";
   return columns;
 }
 
@@ -65,7 +47,7 @@ export async function ensureSeedAdminUser() {
 
 export async function getUsers(): Promise<AppUser[]> {
   const result = await executeQuery<AppUser>(
-    "SELECT id, email, full_name, role, email_verified_at, created_at, updated_at FROM users ORDER BY id ASC"
+    "SELECT id, email, full_name, role, credit_balance, email_verified_at, created_at, updated_at FROM users ORDER BY id ASC"
   );
   return result.rows;
 }
@@ -98,13 +80,22 @@ export async function createUser(input: {
   emailVerifiedAt?: string | null;
 }) {
   const { salt, hash } = hashPassword(input.password);
-  const result = await executeQuery(
-    `INSERT INTO users (email, full_name, password_hash, password_salt, role, email_verified_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-    [input.email, input.fullName, hash, salt, input.role ?? "USER", input.emailVerifiedAt ?? null]
-  );
-  if (!result.insertId) return null;
-  return findUserById(result.insertId);
+  try {
+    const result = await executeQuery(
+      `INSERT INTO users (email, full_name, password_hash, password_salt, role, credit_balance, email_verified_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, 50, ?, CURRENT_TIMESTAMP)`,
+      [input.email, input.fullName, hash, salt, input.role ?? "USER", input.emailVerifiedAt ?? null]
+    );
+    if (!result.insertId) return null;
+    return findUserById(result.insertId);
+  } catch (error: any) {
+    if (error?.code === "ER_DUP_ENTRY") {
+      const dup = new Error("email already exists");
+      (dup as Error & { code?: string }).code = "EMAIL_EXISTS";
+      throw dup;
+    }
+    throw error;
+  }
 }
 
 export async function createGoogleUser(input: {
@@ -115,8 +106,8 @@ export async function createGoogleUser(input: {
   emailVerifiedAt?: string | null;
 }) {
   const result = await executeQuery(
-    `INSERT INTO users (email, full_name, google_sub, role, email_verified_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `INSERT INTO users (email, full_name, google_sub, role, credit_balance, email_verified_at, updated_at)
+     VALUES (?, ?, ?, ?, 50, ?, CURRENT_TIMESTAMP)
      ON DUPLICATE KEY UPDATE
        full_name = VALUES(full_name),
        google_sub = VALUES(google_sub),

@@ -76,7 +76,7 @@ export default function LoginPage() {
               </label>
               {message && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</div>}
               {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
-              <button disabled={isLoading} className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white disabled:opacity-50">
+              <button disabled={isLoading} className="rounded-full bg-[#06C755] px-5 py-3 text-sm font-medium text-white disabled:opacity-50">
                 {isLoading ? "Signing in..." : "Sign in"}
               </button>
               <div className="flex items-center justify-between text-sm text-zinc-600">

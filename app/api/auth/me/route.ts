@@ -13,6 +13,7 @@ export async function GET() {
       email: user.email,
       fullName: user.full_name,
       role: user.role,
+      creditBalance: user.credit_balance,
       emailVerifiedAt: user.email_verified_at,
     },
   });

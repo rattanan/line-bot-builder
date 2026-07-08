@@ -72,74 +72,55 @@ export default function Header() {
           Menu
         </button>
 
-        <div className={`${isOpen ? "flex" : "hidden"} w-full flex-col gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center`}>
-          {isLandingPage ? (
-            <>
-              <Link href="#hero" className={landingNavLinkClass}>
-                หน้าแรก
-              </Link>
-              <Link href="#benefits" className={landingNavLinkClass}>
-                จุดเด่น
-              </Link>
-              <Link href="#steps" className={landingNavLinkClass}>
-                วิธีใช้งาน
-              </Link>
-              <Link href="#cta" className={landingNavLinkClass}>
-                สมัครใช้งาน
-              </Link>
-            </>
-          ) : isAuthPage ? (
-            <>
-              <Link href="/" className={navLinkClass}>
-                Home
-              </Link>
-              <Link href="/login" className={navLinkClass}>
+        {!isAuthPage && (
+          <div className={`${isOpen ? "flex" : "hidden"} w-full flex-col gap-2 sm:flex sm:w-auto sm:flex-row sm:items-center`}>
+            {isLandingPage ? (
+              <>
+                <Link href="#hero" className={landingNavLinkClass}>
+                  หน้าแรก
+                </Link>
+                <Link href="#benefits" className={landingNavLinkClass}>
+                  จุดเด่น
+                </Link>
+                <Link href="#steps" className={landingNavLinkClass}>
+                  วิธีใช้งาน
+                </Link>
+                <Link href="#cta" className={landingNavLinkClass}>
+                  สมัครใช้งาน
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/dashboard/bots" className={navLinkClass}>
+                  Manage Bot
+                </Link>
+                <Link href="/dashboard/topup" className={navLinkClass}>
+                  Top up credit
+                </Link>
+              </>
+            )}
+            {user ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="rounded-full bg-zinc-100 px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-200 hover:text-zinc-950"
+                >
+                  {user.fullName}
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-full bg-[#06C755] px-3 py-2 text-sm text-white transition-transform hover:-translate-y-0.5"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link href="/login" className="rounded-full bg-[#06C755] px-3 py-2 text-sm text-white transition-transform hover:-translate-y-0.5">
                 Login
               </Link>
-              <Link href="/register" className={navLinkClass}>
-                Register
-              </Link>
-              <Link href="/forgot-password" className={navLinkClass}>
-                Forgot Password
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/" className={navLinkClass}>
-                Home
-              </Link>
-              <Link href="/chat-test" className={navLinkClass}>
-                Chat Test
-              </Link>
-              <Link href="/faq" className={navLinkClass}>
-                FAQ
-              </Link>
-              <Link href="/chat-log" className={navLinkClass}>
-                Chat Log
-              </Link>
-            </>
-          )}
-          {user ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="rounded-full bg-zinc-100 px-3 py-2 text-sm text-zinc-700 transition-colors hover:bg-zinc-200 hover:text-zinc-950"
-              >
-                {user.fullName}
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="rounded-full bg-zinc-950 px-3 py-2 text-sm text-white transition-transform hover:-translate-y-0.5"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link href="/login" className="rounded-full bg-zinc-950 px-3 py-2 text-sm text-white transition-transform hover:-translate-y-0.5">
-              Login
-            </Link>
-          )}
-        </div>
+            )}
+          </div>
+        )}
       </nav>
     </header>
   );

@@ -9,6 +9,7 @@ export type SessionUser = {
   email: string;
   full_name: string;
   role: "USER" | "ADMIN";
+  credit_balance: number;
   email_verified_at: string | null;
 };
 
@@ -72,7 +73,7 @@ export async function getSessionUser() {
 
   const tokenHash = hashToken(token);
   const result = await executeQuery<SessionUser & { token_hash: string }>(
-    `SELECT u.id, u.email, u.full_name, u.role, u.email_verified_at, s.token_hash
+    `SELECT u.id, u.email, u.full_name, u.role, u.credit_balance, u.email_verified_at, s.token_hash
      FROM auth_sessions s
      INNER JOIN users u ON u.id = s.user_id
      WHERE s.token_hash = ? AND s.expires_at > NOW()

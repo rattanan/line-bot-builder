@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS `topup_orders` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
-  `user_id` BIGINT UNSIGNED NOT NULL,
+  `user_id` INT UNSIGNED NOT NULL,
   `amount` DECIMAL(10,2) NOT NULL,
   `credit_amount` INT NOT NULL,
   `status` ENUM('pending','uploaded','verified','rejected','manual_review','expired') NOT NULL DEFAULT 'pending',
@@ -10,8 +10,8 @@ CREATE TABLE IF NOT EXISTS `topup_orders` (
   `slip_transfer_time` DATETIME DEFAULT NULL,
   `verified_at` DATETIME DEFAULT NULL,
   `rejected_reason` VARCHAR(255) DEFAULT NULL,
-  `ocr_result` JSON DEFAULT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ocr_result` LONGTEXT DEFAULT NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `expires_at` DATETIME NOT NULL,
   PRIMARY KEY (`id`),
   KEY `idx_topup_orders_user_id` (`user_id`),

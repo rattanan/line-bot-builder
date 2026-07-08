@@ -1,5 +1,4 @@
 import { executeQuery, QueryResult, withTransaction } from "./mysql";
-import { hasUserCreditBalanceColumn } from "./users";
 
 export type BotUsageStatus = "consumed" | "insufficient" | "suspended" | "not_found";
 export type BotUsageSource = "mysql_faq" | "ai" | "fallback" | "credit_block";
@@ -45,7 +44,7 @@ export async function getBotUsageSummary(botId: number) {
       SUM(CASE WHEN source = 'mysql_faq' THEN 1 ELSE 0 END) AS faq_hits,
       SUM(CASE WHEN source = 'ai' THEN 1 ELSE 0 END) AS ai_hits,
       SUM(CASE WHEN source = 'fallback' THEN 1 ELSE 0 END) AS fallback_hits,
-      COALESCE((SELECT credit_balance FROM bots WHERE id = ? LIMIT 1), 0) AS remaining_credit
+      COALESCE((SELECT u.credit_balance FROM bots b INNER JOIN users u ON u.id = b.user_id WHERE b.id = ? LIMIT 1), 0) AS remaining_credit
      FROM bot_usage_logs
      WHERE bot_id = ?`,
     [botId, botId]
@@ -60,10 +59,16 @@ export async function consumeBotCredit(input: {
 }) {
   return withTransaction(async (connection) => {
     const [botRows] = await connection.execute(
-      "SELECT id, credit_balance, status FROM bots WHERE id = ? FOR UPDATE",
+      `SELECT b.id, b.status, u.id AS user_id, u.credit_balance
+       FROM bots b
+       INNER JOIN users u ON u.id = b.user_id
+       WHERE b.id = ?
+       FOR UPDATE`,
       [input.botId]
     );
-    const bot = Array.isArray(botRows) ? (botRows[0] as { id: number; credit_balance: number; status: string } | undefined) : undefined;
+    const bot = Array.isArray(botRows)
+      ? (botRows[0] as { id: number; user_id: number; credit_balance: number; status: string } | undefined)
+      : undefined;
 
     if (!bot) {
       await connection.execute(
@@ -84,34 +89,21 @@ export async function consumeBotCredit(input: {
     }
 
     if (bot.credit_balance <= 0) {
-      if (!(await hasUserCreditBalanceColumn())) {
-        await connection.execute(
-          `INSERT INTO bot_usage_logs (bot_id, line_user_id, user_message, credit_before, credit_after, status, source)
-           VALUES (?, ?, ?, 0, 0, 'insufficient', 'credit_block')`,
-          [bot.id, input.lineUserId, input.userMessage]
-        );
-        return { ok: false as const, reason: "insufficient" as const, creditBefore: 0, creditAfter: 0 };
-      }
-      const [userRows] = await connection.execute(
-        "SELECT id, credit_balance FROM users WHERE id = (SELECT user_id FROM bots WHERE id = ? LIMIT 1) FOR UPDATE",
-        [bot.id]
+      await connection.execute(
+        `INSERT INTO bot_usage_logs (bot_id, line_user_id, user_message, credit_before, credit_after, status, source)
+         VALUES (?, ?, ?, 0, 0, 'insufficient', 'credit_block')`,
+        [bot.id, input.lineUserId, input.userMessage]
       );
-      const user = Array.isArray(userRows) ? (userRows[0] as { id: number; credit_balance: number } | undefined) : undefined;
-      if (!user || user.credit_balance <= 0) {
-        await connection.execute(
-          `INSERT INTO bot_usage_logs (bot_id, line_user_id, user_message, credit_before, credit_after, status, source)
-           VALUES (?, ?, ?, 0, 0, 'insufficient', 'credit_block')`,
-          [bot.id, input.lineUserId, input.userMessage]
-        );
-        return { ok: false as const, reason: "insufficient" as const, creditBefore: 0, creditAfter: 0 };
-      }
-      const nextUserBalance = user.credit_balance - 1;
-      await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextUserBalance, user.id]);
-      return { ok: true as const, reason: "consumed" as const, creditBefore: user.credit_balance, creditAfter: nextUserBalance };
+      return { ok: false as const, reason: "insufficient" as const, creditBefore: 0, creditAfter: 0 };
     }
 
     const creditAfter = bot.credit_balance - 1;
-    await connection.execute("UPDATE bots SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [creditAfter, bot.id]);
+    await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [creditAfter, bot.user_id]);
+    await connection.execute(
+      `INSERT INTO credit_transactions (bot_id, user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason)
+       VALUES (?, ?, 'usage', -1, ?, ?, 'line_message', ?, ?)`,
+      [bot.id, bot.user_id, bot.credit_balance, creditAfter, bot.id, "LINE message usage"]
+    );
     return { ok: true as const, reason: "consumed" as const, creditBefore: bot.credit_balance, creditAfter };
   });
 }
@@ -142,18 +134,22 @@ export async function addBotCredits(input: {
 
   return withTransaction(async (connection) => {
     const [botRows] = await connection.execute(
-      "SELECT id, credit_balance FROM bots WHERE id = ? FOR UPDATE",
+      `SELECT b.id, b.user_id, u.credit_balance
+       FROM bots b
+       INNER JOIN users u ON u.id = b.user_id
+       WHERE b.id = ?
+       FOR UPDATE`,
       [input.botId]
     );
-    const bot = Array.isArray(botRows) ? (botRows[0] as { id: number; credit_balance: number } | undefined) : undefined;
+    const bot = Array.isArray(botRows) ? (botRows[0] as { id: number; user_id: number; credit_balance: number } | undefined) : undefined;
     if (!bot) return null;
 
     const nextBalance = bot.credit_balance + input.amount;
-    await connection.execute("UPDATE bots SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, bot.id]);
+    await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, bot.user_id]);
     await connection.execute(
-      `INSERT INTO credit_transactions (bot_id, amount, reason, admin_email)
-       VALUES (?, ?, ?, ?)`,
-      [bot.id, input.amount, input.reason, input.adminEmail]
+      `INSERT INTO credit_transactions (bot_id, user_id, type, amount, balance_before, balance_after, reason, admin_email)
+       VALUES (?, ?, 'adjustment', ?, ?, ?, ?, ?)`,
+      [bot.id, bot.user_id, input.amount, bot.credit_balance, nextBalance, input.reason, input.adminEmail]
     );
     return { botId: bot.id, creditBalance: nextBalance };
   });

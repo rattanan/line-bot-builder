@@ -2,13 +2,10 @@ import Header from "../components/Header";
 import Link from "next/link";
 import { getSessionUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import { findUserById } from "@/lib/users";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
   if (!user) redirect("/login?next=/dashboard");
-  const profile = await findUserById(user.id);
-  const balance = profile?.credit_balance ?? 0;
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
       <Header />
@@ -29,8 +26,8 @@ export default async function DashboardPage() {
               <div className="mt-2 text-sm font-medium">{user.role}</div>
             </div>
             <div className="rounded-2xl border border-black/5 bg-white p-4">
-              <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Credit balance</div>
-              <div className="mt-2 text-sm font-medium">{balance}</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">Credit Balance</div>
+              <div className="mt-2 text-sm font-medium">{user.credit_balance.toLocaleString()} credits</div>
             </div>
           </div>
           <div className="mt-6 flex flex-wrap gap-3">

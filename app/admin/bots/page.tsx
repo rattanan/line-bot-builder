@@ -24,7 +24,7 @@ export default async function AdminBotsPage() {
                 <tr>
                   <th className="px-4 py-3">Bot</th>
                   <th className="px-4 py-3">Owner</th>
-                  <th className="px-4 py-3">Credit</th>
+                  <th className="px-4 py-3">Owner Credit</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Usage</th>
                   <th className="px-4 py-3">Action</th>

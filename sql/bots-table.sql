@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS `bots` (
   `system_prompt` TEXT NOT NULL,
   `line_channel_secret` VARCHAR(191) NOT NULL,
   `line_channel_access_token` TEXT NOT NULL,
-  `credit_balance` INT NOT NULL DEFAULT 50,
+  `credit_balance` INT NOT NULL DEFAULT 0,
   `status` ENUM('active', 'suspended') NOT NULL DEFAULT 'active',
   `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT NULL,

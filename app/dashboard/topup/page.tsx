@@ -24,12 +24,13 @@ const packages = [
 export default function TopupPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const latestOrder = orders[0] ?? null;
   const activeOrders = useMemo(() => orders.filter((order) => order.status === "pending" || order.status === "uploaded" || order.status === "manual_review"), [orders]);
 
   async function refresh() {
     const res = await fetch("/api/dashboard/topup");
-    const data = await res.json();
+    const data = await res.json().catch(() => ({ orders: [] }));
     setOrders(data.orders || []);
   }
 
@@ -39,16 +40,21 @@ export default function TopupPage() {
 
   async function createOrder(amount: number) {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/dashboard/topup", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ amount }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+      if (!res.ok) throw new Error(data.error || "สร้างรายการเติมเครดิตไม่สำเร็จ");
       if (data.order?.id) {
         window.location.href = `/dashboard/topup/${data.order.id}`;
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "สร้างรายการเติมเครดิตไม่สำเร็จ");
     } finally {
       setLoading(false);
     }
@@ -56,10 +62,10 @@ export default function TopupPage() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <div className="rounded-[2rem] border bg-gradient-to-br from-[#06C755] to-emerald-700 p-8 text-white shadow-lg">
-        <p className="text-xs uppercase tracking-[0.3em] text-zinc-300">Credit top-up</p>
+      <div className="rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-[#06C755] to-emerald-700 p-8 text-white shadow-lg">
+        <p className="text-xs uppercase tracking-[0.3em] text-emerald-100">Credit top-up</p>
         <h1 className="mt-3 text-3xl font-semibold">เติมเครดิตสำหรับบอทของคุณ</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-300">
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-emerald-50">
           เลือกแพ็กเกจ สแกน PromptPay และอัปโหลดสลิปได้ทันที ระบบจะตรวจให้อัตโนมัติถ้าข้อมูลครบ
         </p>
         {latestOrder && (
@@ -68,6 +74,7 @@ export default function TopupPage() {
           </div>
         )}
       </div>
+      {error && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <section className="mt-8">
         <h2 className="text-lg font-semibold">แพ็กเกจที่มีให้เลือก</h2>
@@ -77,11 +84,12 @@ export default function TopupPage() {
             key={pkg.amount}
             onClick={() => createOrder(pkg.amount)}
             disabled={loading}
-            className="rounded-3xl border bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 disabled:opacity-50"
+            className="rounded-3xl border border-emerald-200 bg-emerald-50 p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#06C755] hover:bg-white disabled:opacity-50"
           >
-            <div className="text-sm text-zinc-500">{pkg.amount} บาท</div>
-            <div className="mt-2 text-2xl font-semibold">{pkg.creditAmount.toLocaleString()} messages</div>
-            <div className="mt-3 text-xs text-zinc-500">หมดอายุใน 15 นาทีหลังสร้าง order</div>
+            <div className="inline-flex rounded-full bg-white px-3 py-1 text-sm font-semibold text-emerald-700">{pkg.amount} บาท</div>
+            <div className="mt-4 text-3xl font-bold tracking-tight text-zinc-950">{pkg.creditAmount.toLocaleString()}</div>
+            <div className="mt-1 text-sm font-semibold text-emerald-700">messages</div>
+            <div className="mt-3 text-xs text-zinc-600">หมดอายุใน 15 นาทีหลังสร้าง order</div>
           </button>
         ))}
         </div>

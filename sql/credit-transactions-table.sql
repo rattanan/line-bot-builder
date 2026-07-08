@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS `credit_transactions` (
   `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   `bot_id` INT UNSIGNED NULL,
-  `user_id` BIGINT UNSIGNED NULL,
+  `user_id` INT UNSIGNED NULL,
   `type` ENUM('topup','usage','adjustment') NOT NULL DEFAULT 'usage',
   `amount` INT NOT NULL,
   `balance_before` INT NOT NULL DEFAULT 0,

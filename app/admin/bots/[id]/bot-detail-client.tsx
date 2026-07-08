@@ -85,7 +85,7 @@ export default function BotDetailClient({ botId }: { botId: number }) {
           <div className="mt-4 space-y-2 text-sm text-zinc-700">
             <p>Owner: {detail.bot.owner_name}</p>
             <p>Email: {detail.bot.owner_email}</p>
-            <p>Credit: {detail.bot.credit_balance}</p>
+            <p>Owner Credit: {detail.bot.credit_balance}</p>
             <p>Status: {detail.bot.status}</p>
             <p className="whitespace-pre-wrap">{detail.bot.business_description}</p>
           </div>
@@ -97,7 +97,7 @@ export default function BotDetailClient({ botId }: { botId: number }) {
             <input className="rounded-2xl border px-4 py-3 text-sm" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <input className="rounded-2xl border px-4 py-3 text-sm" value={reason} onChange={(e) => setReason(e.target.value)} />
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => submitAction("credit")} className="rounded-full bg-zinc-950 px-4 py-2 text-sm text-white">Add Credit</button>
+              <button onClick={() => submitAction("credit")} className="rounded-full bg-[#06C755] px-4 py-2 text-sm text-white">Add Owner Credit</button>
               <button onClick={() => submitAction("suspend")} className="rounded-full border px-4 py-2 text-sm">Suspend</button>
               <button onClick={() => submitAction("activate")} className="rounded-full border px-4 py-2 text-sm">Activate</button>
             </div>

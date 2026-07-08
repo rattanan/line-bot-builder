@@ -12,15 +12,19 @@ type Bot = {
   system_prompt: string;
   line_channel_secret: string | null;
   line_channel_access_token: string | null;
-  credit_balance: number;
   status: "active" | "suspended";
 };
 
 export default function BotSettingsPage({ params }: { params: Promise<{ id: string }> }) {
   const [botId, setBotId] = useState<number | null>(null);
   const [bot, setBot] = useState<Bot | null>(null);
+  const [lineChannelSecret, setLineChannelSecret] = useState("");
+  const [lineChannelAccessToken, setLineChannelAccessToken] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveResult, setSaveResult] = useState<string | null>(null);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+  const [canTest, setCanTest] = useState(false);
 
   useEffect(() => {
     params.then((p) => setBotId(Number(p.id)));
@@ -32,14 +36,47 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
       const res = await fetch(`/api/dashboard/bots/${botId}/usage`);
       const data = await res.json();
       setBot(data.bot);
+      setLineChannelSecret(data.bot?.line_channel_secret || "");
+      setLineChannelAccessToken(data.bot?.line_channel_access_token || "");
+      setCanTest(Boolean(data.bot?.line_channel_secret && data.bot?.line_channel_access_token));
     };
     load();
   }, [botId]);
 
-  const webhookUrl = botId ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/line/webhook/${botId}` : "";
+  const webhookUrl = botId && canTest ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/line/webhook/${botId}` : "";
+
+  const saveConnection = async () => {
+    if (!botId) return;
+    setIsSaving(true);
+    setSaveResult(null);
+    setTestResult(null);
+    try {
+      const res = await fetch(`/api/dashboard/bots/${botId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lineChannelSecret,
+          lineChannelAccessToken,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Save failed");
+      setBot(data.bot);
+      setCanTest(Boolean(data.bot?.line_channel_secret && data.bot?.line_channel_access_token));
+      setSaveResult("บันทึกข้อมูลสำเร็จแล้ว");
+    } catch (error) {
+      setSaveResult(error instanceof Error ? error.message : "Save failed");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const testConnection = async () => {
     if (!botId) return;
+    if (!canTest) {
+      setTestResult("กรุณากด Save ให้เรียบร้อยก่อน");
+      return;
+    }
     setIsTesting(true);
     setTestResult(null);
     try {
@@ -90,21 +127,52 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
           </div>
 
           <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">ข้อมูลบอท</h2>
+            <h2 className="text-lg font-semibold">วิธีตั้งค่า</h2>
             <div className="mt-4 space-y-3 text-sm text-zinc-700">
               <p>Bot name: {bot?.bot_name || "-"}</p>
               <p>Business: {bot?.business_name || "-"}</p>
               <p>Status: {bot?.status || "-"}</p>
-              <p>Credit: {bot?.credit_balance ?? 0}</p>
             </div>
 
-            <div className="mt-6 grid gap-3">
+            <div className="mt-6 grid gap-4">
+              <label className="grid gap-2 text-sm">
+                <span className="font-medium text-zinc-700">LINE Channel Secret</span>
+                <input
+                  value={lineChannelSecret}
+                  onChange={(e) => {
+                    setLineChannelSecret(e.target.value);
+                    setCanTest(false);
+                  }}
+                  className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 outline-none"
+                  placeholder="ใส่ Channel Secret"
+                />
+              </label>
+              <label className="grid gap-2 text-sm">
+                <span className="font-medium text-zinc-700">LINE Channel Access Token</span>
+                <textarea
+                  value={lineChannelAccessToken}
+                  onChange={(e) => {
+                    setLineChannelAccessToken(e.target.value);
+                    setCanTest(false);
+                  }}
+                  className="min-h-[110px] rounded-2xl border border-zinc-200 bg-white px-4 py-3 outline-none"
+                  placeholder="ใส่ Channel Access Token"
+                />
+              </label>
+              <button
+                onClick={saveConnection}
+                disabled={isSaving}
+                className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40"
+              >
+                {isSaving ? "Saving..." : "Save"}
+              </button>
+              {saveResult && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{saveResult}</div>}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs break-all">
-                {webhookUrl || "Webhook URL จะปรากฏเมื่อโหลดหน้าเสร็จ"}
+                {webhookUrl || "กด Save ก่อนเพื่อแสดง Webhook URL"}
               </div>
               <button
                 onClick={testConnection}
-                disabled={isTesting}
+                disabled={isTesting || !canTest}
                 className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40"
               >
                 {isTesting ? "Testing..." : "Test Connection"}

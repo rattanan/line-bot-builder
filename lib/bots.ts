@@ -59,7 +59,7 @@ export async function createBot(input: {
     `INSERT INTO bots (
       user_id, bot_name, business_name, business_description, system_prompt,
       line_channel_secret, line_channel_access_token, credit_balance, status, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 50, 'active', CURRENT_TIMESTAMP)`,
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)`,
     [
       input.userId,
       input.botName,
@@ -88,7 +88,7 @@ export async function createBotWithFaqs(input: {
       `INSERT INTO bots (
         user_id, bot_name, business_name, business_description, system_prompt,
         line_channel_secret, line_channel_access_token, credit_balance, status, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 50, 'active', CURRENT_TIMESTAMP)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)`,
       [
         input.userId,
         input.botName,

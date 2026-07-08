@@ -112,16 +112,16 @@ export default function Home() {
       <main className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 scroll-smooth">
         <section
           id="hero"
-          className="relative overflow-hidden rounded-[2rem] border border-black/5 bg-white/70 px-6 py-10 shadow-[0_18px_60px_rgba(24,24,27,0.08)] backdrop-blur-md sm:px-8 sm:py-12"
+          className="relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-lime-50 px-6 py-10 shadow-[0_18px_60px_rgba(24,24,27,0.08)] backdrop-blur-md sm:px-8 sm:py-12"
         >
-          <div className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,rgba(15,23,42,0.03)_0%,transparent_40%,rgba(15,23,42,0.02)_100%)]" />
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(6,199,85,0.08),transparent_35%),linear-gradient(135deg,rgba(15,23,42,0.02)_0%,transparent_40%,rgba(15,23,42,0.01)_100%)]" />
           <div className="flex items-start justify-between gap-4">
-            <span className="inline-flex rounded-full border border-black/5 bg-white px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-zinc-500 shadow-sm">
+            <span className="inline-flex rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
               {t.badge}
             </span>
             <button
               onClick={() => setLang((current) => (current === "th" ? "en" : "th"))}
-              className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold tracking-[0.18em] text-zinc-700 transition-colors hover:bg-zinc-50"
+              className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold tracking-[0.18em] text-emerald-700 transition-colors hover:bg-emerald-50"
               aria-label="Switch language"
             >
               {t.langLabel}
@@ -140,13 +140,13 @@ export default function Home() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/register"
-                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
+                  className="inline-flex items-center justify-center rounded-full bg-[#06C755] px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
                 >
                   {t.primary}
                 </Link>
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-900 transition-colors hover:bg-zinc-50"
+                  className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
                 >
                   {t.secondary}
                 </Link>
@@ -154,8 +154,8 @@ export default function Home() {
 
               <div className="mt-8 grid gap-3 sm:grid-cols-3">
                 {t.stats.map((item) => (
-                  <div key={item.label} className="rounded-2xl border border-black/5 bg-white p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-zinc-500">{item.label}</div>
+                  <div key={item.label} className="rounded-2xl border border-emerald-100 bg-white/90 p-4 shadow-[0_1px_0_rgba(255,255,255,0.85)]">
+                    <div className="text-xs uppercase tracking-[0.18em] text-emerald-600">{item.label}</div>
                     <div className="mt-2 text-lg font-semibold">{item.value}</div>
                   </div>
                 ))}
@@ -166,18 +166,18 @@ export default function Home() {
               {featureCards.map((card) => (
                 <div
                   key={card.title}
-                  className="rounded-3xl border border-black/5 bg-white p-6 shadow-[0_1px_0_rgba(255,255,255,0.85)]"
+                  className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 shadow-[0_1px_0_rgba(255,255,255,0.85)]"
                 >
-                  <div className="text-sm font-semibold text-zinc-900">{card.title}</div>
-                  <p className="mt-2 text-sm leading-6 text-zinc-600">{card.description}</p>
+                  <div className="text-sm font-semibold text-emerald-900">{card.title}</div>
+                  <p className="mt-2 text-sm leading-6 text-emerald-900/75">{card.description}</p>
                 </div>
               ))}
-              <div className="rounded-3xl border border-zinc-200 bg-zinc-950 p-6 text-white shadow-xl">
-                <div className="text-xs uppercase tracking-[0.22em] text-zinc-400">{t.ctaTitle}</div>
-                <p className="mt-3 text-sm leading-6 text-zinc-300">{t.ctaDesc}</p>
+              <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-[#06C755] to-emerald-600 p-6 text-white shadow-xl">
+                <div className="text-xs uppercase tracking-[0.22em] text-emerald-50">{t.ctaTitle}</div>
+                <p className="mt-3 text-sm leading-6 text-white/85">{t.ctaDesc}</p>
                 <Link
                   href="/register"
-                  className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-medium text-zinc-950 transition-transform hover:-translate-y-0.5"
+                  className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-medium text-emerald-700 transition-transform hover:-translate-y-0.5"
                 >
                   {t.primary}
                 </Link>
@@ -187,29 +187,29 @@ export default function Home() {
         </section>
 
         <section id="benefits" className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="rounded-[2rem] border border-black/5 bg-white/80 p-7 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">{t.benefitsTitle}</span>
+          <div className="rounded-[2rem] border border-emerald-100 bg-emerald-50 p-7 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
+            <span className="text-xs font-medium uppercase tracking-[0.22em] text-emerald-700">{t.benefitsTitle}</span>
             <ul className="mt-5 space-y-4">
               {t.benefits.map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-6 text-zinc-700">
-                  <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-zinc-950" />
+                <li key={item} className="flex gap-3 text-sm leading-6 text-emerald-900/80">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#06C755]" />
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div id="steps" className="rounded-[2rem] border border-black/5 bg-white/80 p-7 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">{t.stepsTitle}</span>
+          <div id="steps" className="rounded-[2rem] border border-emerald-100 bg-white/90 p-7 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
+            <span className="text-xs font-medium uppercase tracking-[0.22em] text-emerald-700">{t.stepsTitle}</span>
             <div className="mt-5 grid gap-4">
               {t.steps.map((step, index) => (
-                <div key={step.title} className="flex gap-4 rounded-2xl border border-zinc-200 bg-white p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-950 text-sm font-semibold text-white">
+                <div key={step.title} className="flex gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#06C755] text-sm font-semibold text-white">
                     {index + 1}
                   </div>
                   <div>
-                    <div className="font-medium text-zinc-900">{step.title}</div>
-                    <p className="mt-1 text-sm leading-6 text-zinc-600">{step.desc}</p>
+                    <div className="font-medium text-emerald-950">{step.title}</div>
+                    <p className="mt-1 text-sm leading-6 text-emerald-900/75">{step.desc}</p>
                   </div>
                 </div>
               ))}
@@ -217,11 +217,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="cta" className="mt-8 rounded-[2rem] border border-black/5 bg-gradient-to-br from-zinc-950 to-zinc-800 px-7 py-8 text-white shadow-[0_18px_60px_rgba(24,24,27,0.18)]">
+        <section id="cta" className="mt-8 rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-[#06C755] to-emerald-600 px-7 py-8 text-white shadow-[0_18px_60px_rgba(24,24,27,0.18)]">
           <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
               <h2 className="text-2xl font-semibold tracking-tight">{t.ctaTitle}</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-zinc-300">{t.footerNote}</p>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85">{t.footerNote}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link

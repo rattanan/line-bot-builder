@@ -23,7 +23,7 @@ export async function GET(req: NextRequest, context: RouteContext<"/api/dashboar
     bot: {
       id: bot.id,
       bot_name: bot.bot_name,
-      credit_balance: bot.credit_balance,
+      credit_balance: summary?.remaining_credit ?? 0,
       status: bot.status,
     },
   });

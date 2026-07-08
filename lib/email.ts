@@ -21,10 +21,16 @@ export async function sendMail(message: MailMessage) {
     return;
   }
 
-  await client.emails.send({
-    from: resendFrom,
-    to: [message.to],
-    subject: message.subject,
-    text: message.text,
-  });
+  try {
+    const result = await client.emails.send({
+      from: resendFrom,
+      to: [message.to],
+      subject: message.subject,
+      text: message.text,
+    });
+    console.log(`[mail:${message.to}] sent via resend`, result?.data?.id || "");
+  } catch (error) {
+    console.error(`[mail:${message.to}] resend delivery failed`, error);
+    throw error;
+  }
 }

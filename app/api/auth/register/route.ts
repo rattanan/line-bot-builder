@@ -9,7 +9,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "email, fullName and password are required" }, { status: 400 });
   }
 
-  const user = await createUser({ email: String(email), fullName: String(fullName), password: String(password) });
+  let user;
+  try {
+    user = await createUser({ email: String(email), fullName: String(fullName), password: String(password) });
+  } catch (error: any) {
+    if (error?.code === "EMAIL_EXISTS") {
+      return NextResponse.json({ error: "This email is already registered" }, { status: 409 });
+    }
+    throw error;
+  }
   if (!user) {
     return NextResponse.json({ error: "Unable to create account" }, { status: 500 });
   }
@@ -17,6 +25,7 @@ export async function POST(req: NextRequest) {
   const token = await createVerificationToken(user.id);
   const verifyUrl = new URL("/api/auth/verify-email", req.url);
   verifyUrl.searchParams.set("token", token);
+  console.log(`[auth:register] verification link for ${user.email}: ${verifyUrl.toString()}`);
   await sendMail({
     to: user.email,
     subject: "Verify your email",

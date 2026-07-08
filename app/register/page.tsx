@@ -95,7 +95,7 @@ export default function RegisterPage() {
               )}
               <button
                 disabled={isLoading}
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded-full bg-[#06C755] px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
               >
                 {isLoading ? "Creating account..." : "Create account"}
               </button>

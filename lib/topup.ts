@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import { executeQuery, withTransaction } from "./mysql";
 import { getSessionUserId } from "./auth";
 import { openAICompatibleChat } from "./ai/openai-compatible";
-import { hasUserCreditBalanceColumn } from "./users";
 
 export type TopupOrderStatus = "pending" | "uploaded" | "verified" | "rejected" | "manual_review" | "expired";
 
@@ -37,8 +36,45 @@ export function getTopupPackage(amount: number) {
   return TOPUP_PACKAGES.find((pkg) => pkg.amount === amount) ?? null;
 }
 
+function tlv(id: string, value: string) {
+  return `${id}${value.length.toString().padStart(2, "0")}${value}`;
+}
+
+function crc16Ccitt(input: string) {
+  let crc = 0xffff;
+  for (let i = 0; i < input.length; i += 1) {
+    crc ^= input.charCodeAt(i) << 8;
+    for (let bit = 0; bit < 8; bit += 1) {
+      crc = crc & 0x8000 ? (crc << 1) ^ 0x1021 : crc << 1;
+      crc &= 0xffff;
+    }
+  }
+  return crc.toString(16).toUpperCase().padStart(4, "0");
+}
+
+function formatPromptPayPhone(phone: string) {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.startsWith("0")) return `0066${digits.slice(1)}`;
+  if (digits.startsWith("66")) return `00${digits}`;
+  return digits;
+}
+
 export function buildPromptPayPayload(amount: number) {
-  return `00020101021229370016A00000067701011101130066${PROMPTPAY_PHONE}5303764540${amount.toFixed(2)}5802TH6304`;
+  const merchantAccount = [
+    tlv("00", "A000000677010111"),
+    tlv("01", formatPromptPayPhone(PROMPTPAY_PHONE)),
+  ].join("");
+  const payloadWithoutCrc = [
+    tlv("00", "01"),
+    tlv("01", "12"),
+    tlv("29", merchantAccount),
+    tlv("53", "764"),
+    tlv("54", amount.toFixed(2)),
+    tlv("58", "TH"),
+    "6304",
+  ].join("");
+
+  return `${payloadWithoutCrc}${crc16Ccitt(payloadWithoutCrc)}`;
 }
 
 export async function createTopupOrder(input: { userId: number; amount: number }) {
@@ -168,23 +204,20 @@ export async function evaluateTopupOrder(orderId: number, actor: { adminEmail?: 
       "SELECT id, credit_balance FROM users WHERE id = ? FOR UPDATE",
       [order.user_id]
     );
-    const user = Array.isArray(userRows) ? (userRows[0] as { id: number; credit_balance?: number } | undefined) : undefined;
+    const user = Array.isArray(userRows) ? (userRows[0] as { id: number; credit_balance: number } | undefined) : undefined;
     if (!user) return null;
-    const currentBalance = user.credit_balance ?? 0;
-    const nextBalance = currentBalance + order.credit_amount;
+    const nextBalance = user.credit_balance + order.credit_amount;
     await connection.execute(
       `UPDATE topup_orders
        SET status = 'verified', slip_transaction_id = ?, slip_transfer_time = ?, verified_at = NOW()
        WHERE id = ?`,
       [String(ocr.transaction_id), new Date(String(ocr.transfer_time)), orderId]
     );
-    if (await hasUserCreditBalanceColumn()) {
-      await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, order.user_id]);
-    }
+    await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, order.user_id]);
     await connection.execute(
       `INSERT INTO credit_transactions (user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason, admin_email)
        VALUES (?, 'topup', ?, ?, ?, 'topup_order', ?, ?, ?)`,
-      [order.user_id, order.credit_amount, currentBalance, nextBalance, order.id, "PromptPay topup verified", actor.adminEmail ?? null]
+      [order.user_id, order.credit_amount, user.credit_balance, nextBalance, order.id, "PromptPay topup verified", actor.adminEmail ?? null]
     );
     return { ...order, status: "verified" as const };
   });
@@ -192,7 +225,30 @@ export async function evaluateTopupOrder(orderId: number, actor: { adminEmail?: 
 
 export async function adminReviewTopup(orderId: number, approve: boolean, reason?: string) {
   if (approve) {
-    return evaluateTopupOrder(orderId, { adminEmail: "admin-review" });
+    return withTransaction(async (connection) => {
+      const [rows] = await connection.execute(
+        `SELECT id, user_id, amount, credit_amount, status, qr_payload, slip_image_url, slip_transaction_id, slip_transfer_time, verified_at, rejected_reason, ocr_result, created_at, expires_at
+         FROM topup_orders WHERE id = ? FOR UPDATE`,
+        [orderId]
+      );
+      const order = Array.isArray(rows) ? (rows[0] as TopupOrder | undefined) : undefined;
+      if (!order) return null;
+      if (order.status === "verified") return order;
+
+      const [userRows] = await connection.execute("SELECT id, credit_balance FROM users WHERE id = ? FOR UPDATE", [order.user_id]);
+      const user = Array.isArray(userRows) ? (userRows[0] as { id: number; credit_balance: number } | undefined) : undefined;
+      if (!user) return null;
+      const nextBalance = user.credit_balance + order.credit_amount;
+
+      await connection.execute("UPDATE topup_orders SET status = 'verified', verified_at = NOW(), rejected_reason = NULL WHERE id = ?", [orderId]);
+      await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, order.user_id]);
+      await connection.execute(
+        `INSERT INTO credit_transactions (user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason, admin_email)
+         VALUES (?, 'topup', ?, ?, ?, 'topup_order', ?, ?, ?)`,
+        [order.user_id, order.credit_amount, user.credit_balance, nextBalance, order.id, "PromptPay topup approved by admin", "admin-review"]
+      );
+      return { ...order, status: "verified" as const };
+    });
   }
   await executeQuery("UPDATE topup_orders SET status = 'rejected', rejected_reason = ? WHERE id = ?", [reason || "Rejected by admin", orderId]);
   return getTopupOrderById(orderId);
