@@ -37,13 +37,21 @@ const initialForm = {
   tone: "friendly and professional",
 };
 
+function LoadingSpinner({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
+      <span>{label}</span>
+    </span>
+  );
+}
+
 export default function NewBotWizardPage() {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>(1);
   const [form, setForm] = useState(initialForm);
   const [wizard, setWizard] = useState<WizardResult | null>(null);
   const [draftFaqs, setDraftFaqs] = useState<DraftCandidate[]>([]);
-  const [selectedFaqIndexes, setSelectedFaqIndexes] = useState<number[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -99,7 +107,6 @@ export default function NewBotWizardPage() {
           sourceRef: `description-${index + 1}`,
         }))
       );
-      setSelectedFaqIndexes([]);
       setStep(3);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Generate failed");
@@ -123,7 +130,10 @@ export default function NewBotWizardPage() {
           systemPrompt: wizard.systemPrompt,
           lineChannelSecret: "",
           lineChannelAccessToken: "",
-          faqs: [],
+          faqs: draftFaqs.map((faq) => ({
+            question: faq.question,
+            answer: faq.answer,
+          })),
         }),
       });
       const data = await res.json();
@@ -136,22 +146,6 @@ export default function NewBotWizardPage() {
       const wizardData = await wizardRes.json();
       const wizardId = wizardData.wizard?.id;
       if (wizardId) {
-        await fetch(`/api/dashboard/bots/${data.id}/knowledge-wizard/review`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            wizardId,
-            candidates: draftFaqs.map((faq, index) => ({
-              question: faq.question,
-              answer: faq.answer,
-              category: faq.category,
-              confidenceScore: faq.confidenceScore,
-              sourceType: faq.sourceType,
-              sourceRef: faq.sourceRef || `description-${index + 1}`,
-              languageCode: faq.languageCode,
-            })),
-          }),
-        });
         if (form.websiteUrl) {
           await fetch(`/api/dashboard/bots/${data.id}/knowledge-wizard/crawl`, {
             method: "POST",
@@ -169,13 +163,17 @@ export default function NewBotWizardPage() {
           });
         }
       }
-      router.push(`/dashboard/bots/${data.id}/knowledge`);
+      router.push(`/dashboard/bots/${data.id}/settings`);
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const removeDraftFaq = (indexToRemove: number) => {
+    setDraftFaqs((current) => current.filter((_, index) => index !== indexToRemove));
   };
 
   return (
@@ -247,28 +245,33 @@ export default function NewBotWizardPage() {
                       Back
                     </button>
                     <button disabled={!canGenerate || isGenerating} onClick={generate} type="button" className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
-                      {isGenerating ? "Generating..." : "Generate knowledge"}
+                      {isGenerating ? <LoadingSpinner label="กำลังสร้าง FAQ..." /> : "Generate knowledge"}
                     </button>
                   </div>
+                  {isGenerating && (
+                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                      <div className="flex items-center gap-3">
+                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-[#06C755]" aria-hidden="true" />
+                        <div>
+                          <p className="font-medium">กำลังให้ AI วิเคราะห์ข้อมูลร้านและสร้าง FAQ</p>
+                          <p className="mt-1 text-xs text-emerald-700">โปรดรอสักครู่ ระบบกำลังสร้างคำถาม-คำตอบเริ่มต้นให้บอทของคุณ</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
 
             {step === 3 && (
               <>
-                <h2 className="text-lg font-semibold">Review drafts</h2>
-                <p className="mt-2 text-sm text-zinc-600">Merged FAQ list from description and AI generation. You can approve the ones you want to keep.</p>
+                <h2 className="text-lg font-semibold">Approve FAQ</h2>
+                <p className="mt-2 text-sm text-zinc-600">FAQ ที่เหลือใน Preview จะถูกบันทึกเป็น active FAQ ให้บอททันที</p>
                 <div className="mt-4 grid gap-3">
                   {draftFaqs.map((faq, index) => (
-                    <button
+                    <article
                       key={`${faq.question}-${index}`}
-                      type="button"
-                      onClick={() =>
-                        setSelectedFaqIndexes((current) =>
-                          current.includes(index) ? current.filter((value) => value !== index) : [...current, index]
-                        )
-                      }
-                      className={`rounded-2xl border p-4 text-left transition ${selectedFaqIndexes.includes(index) ? "border-[#06C755] bg-emerald-50" : "bg-white"}`}
+                      className="rounded-2xl border bg-white p-4 text-left transition"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
@@ -280,15 +283,20 @@ export default function NewBotWizardPage() {
                         </div>
                         <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs">{faq.languageCode}</span>
                       </div>
-                    </button>
+                    </article>
                   ))}
+                  {!draftFaqs.length && (
+                    <div className="rounded-2xl border border-dashed p-6 text-sm text-zinc-500">
+                      ยังไม่มี FAQ ที่จะ approve คุณสามารถย้อนกลับไป generate ใหม่ได้
+                    </div>
+                  )}
                 </div>
                 <div className="mt-5 flex flex-wrap gap-3">
                   <button onClick={() => setStep(2)} type="button" className="rounded-full border px-5 py-3 text-sm">
                     Back
                   </button>
-                  <button onClick={saveBot} disabled={isSaving} className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
-                    {isSaving ? "Creating bot..." : "Create Bot & Review Drafts"}
+                  <button onClick={saveBot} disabled={isSaving || !draftFaqs.length} className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
+                    {isSaving ? "Creating bot..." : `Approve ${draftFaqs.length} FAQ & Create Bot`}
                   </button>
                   <button onClick={() => router.push("/dashboard/bots")} type="button" className="rounded-full border px-5 py-3 text-sm">
                     Skip review
@@ -313,17 +321,31 @@ export default function NewBotWizardPage() {
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-zinc-400">FAQs</p>
                   <div className="mt-2 grid gap-3">
-                    {wizard.faqs.map((faq, index) => (
+                    {draftFaqs.map((faq, index) => (
                       <article key={`${faq.question}-${index}`} className="rounded-2xl border p-4">
-                        <p className="font-medium">{faq.question}</p>
-                        <p className="mt-2 text-sm text-zinc-600">{faq.answer}</p>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="font-medium">{faq.question}</p>
+                            <p className="mt-2 text-sm text-zinc-600">{faq.answer}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDraftFaq(index)}
+                            className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-red-200 bg-red-50 text-lg leading-none text-red-600 transition hover:bg-red-100"
+                            aria-label={`Remove FAQ ${index + 1}`}
+                            title="ลบ FAQ นี้"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </article>
                     ))}
+                    {!draftFaqs.length && <div className="rounded-2xl border border-dashed p-5 text-sm text-zinc-500">ลบ FAQ ออกหมดแล้ว</div>}
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-400">Selected for approval</p>
-                  <p className="mt-2 text-sm text-zinc-600">{selectedFaqIndexes.length ? `${selectedFaqIndexes.length} FAQ(s) selected` : "No selection yet"}</p>
+                  <p className="text-xs uppercase tracking-[0.18em] text-zinc-400">Ready to approve</p>
+                  <p className="mt-2 text-sm text-zinc-600">{draftFaqs.length ? `${draftFaqs.length} FAQ(s) will be active after bot creation` : "No FAQ selected"}</p>
                 </div>
               </div>
             )}

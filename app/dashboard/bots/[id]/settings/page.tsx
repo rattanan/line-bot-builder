@@ -121,22 +121,31 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
               </Link>
               <Step title="1) สร้าง LINE Messaging API Channel">
                 เข้า LINE Developers Console แล้วสร้าง Provider ใหม่ จากนั้นสร้าง Channel ประเภท Messaging API
+                <ExternalDocLink href="https://developers.line.biz/console/" label="เปิด LINE Developers Console" />
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/getting-started/" label="ดูคู่มือเริ่มต้น Messaging API" />
               </Step>
               <Step title="2) หา Channel Secret">
                 หลังสร้าง channel แล้ว ให้เปิดหน้า Basic settings จะเห็น Channel Secret ให้นำค่านี้มาใส่ในช่อง Channel Secret ของบอท
+                <ExternalDocLink href="https://developers.line.biz/console/" label="ไปที่หน้า Channel ใน LINE Developers Console" />
+                <ExternalDocLink href="https://developers.line.biz/en/docs/basics/channel-secret/" label="อ่านรายละเอียด Channel Secret" />
               </Step>
               <Step title="3) สร้าง Channel Access Token">
                 เข้า Messaging API settings แล้วกดออก token แบบ long-lived access token จากนั้นคัดลอกมาใส่ในช่อง Channel Access Token
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/channel-access-tokens/" label="อ่านวิธีสร้าง Channel Access Token" />
               </Step>
               <Step title="4) ตั้งค่า Webhook URL">
                 ใช้ URL นี้เป็น Webhook ของบอทตัวนี้
                 <div className="mt-2 rounded-2xl border bg-zinc-50 px-4 py-3 font-mono text-xs break-all">{webhookUrl || "โหลดหน้าเพื่อแสดง webhook URL"}</div>
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/" label="อ่านคู่มือการรับข้อความผ่าน Webhook" />
               </Step>
               <Step title="5) เปิด Use webhook">
                 กลับไปที่ Messaging API settings แล้วเปิดสวิตช์ Use webhook ให้เป็นเปิด เพื่อให้ข้อความจาก LINE ส่งมาที่ระบบนี้
+                <ExternalDocLink href="https://developers.line.biz/console/" label="เปิดหน้า Messaging API settings" />
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/" label="ดูวิธีเปิดและใช้งาน Webhook" />
               </Step>
               <Step title="6) ทดสอบการเชื่อมต่อ">
                 เมื่อกรอก Channel Secret และ Access Token แล้ว ให้กดปุ่ม Test Connection ด้านล่าง เพื่อตรวจว่าระบบเชื่อมกับ LINE ได้จริง
+                <ExternalDocLink href="https://developers.line.biz/en/reference/messaging-api/" label="ดู Messaging API Reference" />
               </Step>
             </div>
           </div>
@@ -234,5 +243,18 @@ function Step({ title, children }: { title: string; children: React.ReactNode })
       <p className="font-semibold text-zinc-900">{title}</p>
       <div className="mt-1">{children}</div>
     </div>
+  );
+}
+
+function ExternalDocLink({ href, label }: { href: string; label: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-3 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-100"
+    >
+      {label}
+    </a>
   );
 }

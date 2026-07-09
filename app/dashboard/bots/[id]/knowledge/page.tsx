@@ -30,6 +30,15 @@ type Wizard = {
   status: string;
 };
 
+function InlineSpinner({ label }: { label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
+      <span>{label}</span>
+    </span>
+  );
+}
+
 export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const [botId, setBotId] = useState<number | null>(null);
@@ -186,7 +195,7 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
                   disabled={!wizard?.website_url || syncing}
                   className="rounded-full bg-[#06C755] px-4 py-2 text-sm text-white disabled:opacity-40"
                 >
-                  {syncing ? "Working..." : wizard?.website_url ? "Start website import" : "No website URL"}
+                  {syncing ? <InlineSpinner label="กำลังทำงาน..." /> : wizard?.website_url ? "Start website import" : "No website URL"}
                 </button>
                 <label className="cursor-pointer rounded-full border px-4 py-2 text-sm">
                   Upload images
@@ -222,6 +231,17 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
               className="w-full rounded-2xl border px-4 py-3 text-sm"
             />
           </div>
+          {syncing && (
+            <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              <div className="flex items-center gap-3">
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-[#06C755]" aria-hidden="true" />
+                <div>
+                  <p className="font-medium">กำลังประมวลผลข้อมูลเพื่อสร้าง FAQ</p>
+                  <p className="mt-1 text-xs text-emerald-700">ระบบกำลังอ่านข้อมูลจากเว็บไซต์หรือรูปภาพ แล้วสร้าง draft FAQ ให้ตรวจทาน</p>
+                </div>
+              </div>
+            </div>
+          )}
           {message && <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{message}</div>}
         </div>
 
