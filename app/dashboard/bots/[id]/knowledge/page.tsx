@@ -47,6 +47,7 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<number[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [websiteUrl, setWebsiteUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [message, setMessage] = useState("");
@@ -60,6 +61,7 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
     const wizardRes = await fetch(`/api/dashboard/bots/${botId}/knowledge-wizard`);
     const wizardData = await wizardRes.json();
     setWizard(wizardData.wizard || null);
+    setWebsiteUrl(wizardData.wizard?.website_url || "");
     if (!wizardData.wizard?.id) {
       setCandidates([]);
       return;
@@ -70,14 +72,14 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
   }, [botId]);
 
   const runWebsiteImport = async () => {
-    if (!botId || !wizard?.id || !wizard.website_url) return;
+    if (!botId || !wizard?.id || !websiteUrl.trim()) return;
     setSyncing(true);
     setMessage("");
     try {
       const res = await fetch(`/api/dashboard/bots/${botId}/knowledge-wizard/crawl`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wizardId: wizard.id, websiteUrl: wizard.website_url }),
+        body: JSON.stringify({ wizardId: wizard.id, websiteUrl: websiteUrl.trim() }),
       });
       const data = await res.json();
       setMessage(res.status === 202 ? "กำลังดึงข้อมูลจากเว็บไซต์ใน background" : data.error || "เริ่ม crawl ไม่สำเร็จ");
@@ -192,10 +194,10 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={runWebsiteImport}
-                  disabled={!wizard?.website_url || syncing}
+                  disabled={!websiteUrl.trim() || syncing}
                   className="rounded-full bg-[#06C755] px-4 py-2 text-sm text-white disabled:opacity-40"
                 >
-                  {syncing ? <InlineSpinner label="กำลังทำงาน..." /> : wizard?.website_url ? "Start website import" : "No website URL"}
+                  {syncing ? <InlineSpinner label="กำลังทำงาน..." /> : websiteUrl.trim() ? "Start website import" : "No website URL"}
                 </button>
                 <label className="cursor-pointer rounded-full border px-4 py-2 text-sm">
                   Upload images
@@ -223,6 +225,20 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
                   Selected images: {imageFiles.map((file) => file.name).join(", ")}
                 </div>
               )}
+              <div className="rounded-2xl border border-zinc-200 bg-white/90 p-4">
+                <label className="grid gap-2 text-sm">
+                  <span className="font-medium text-zinc-700">Website URL for import</span>
+                  <input
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://example.com"
+                    className="rounded-2xl border border-zinc-200 px-4 py-3 text-sm outline-none"
+                  />
+                </label>
+                <p className="mt-2 text-xs leading-5 text-zinc-500">
+                  แก้ URL ได้ตรงนี้ แล้วกด Start website import เพื่อดึงข้อมูลจากเว็บใหม่เข้ามาได้ทันที
+                </p>
+              </div>
             </div>
             <input
               value={search}

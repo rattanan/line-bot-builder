@@ -24,9 +24,14 @@ export default function Header() {
 
   useEffect(() => {
     const loadSession = async () => {
-      const res = await fetch("/api/auth/me");
-      const data = await res.json();
-      setUser(data.user ?? null);
+      try {
+        const res = await fetch("/api/auth/me");
+        const text = await res.text();
+        const data = text ? JSON.parse(text) : { user: null };
+        setUser(data.user ?? null);
+      } catch {
+        setUser(null);
+      }
     };
 
     loadSession();

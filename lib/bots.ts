@@ -154,3 +154,12 @@ export async function updateBot(
   await executeQuery(`UPDATE bots SET ${updates.join(", ")} WHERE id = ?`, params);
   return getBotById(id);
 }
+
+export async function deleteBot(id: number) {
+  await withTransaction(async (connection) => {
+    await connection.execute("DELETE FROM faq WHERE bot_id = ?", [id]);
+    await connection.execute("DELETE FROM bot_usage_logs WHERE bot_id = ?", [id]);
+    await connection.execute("DELETE FROM chat_log WHERE bot_id = ?", [id]);
+    await connection.execute("DELETE FROM bots WHERE id = ?", [id]);
+  });
+}

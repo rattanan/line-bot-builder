@@ -26,6 +26,9 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   const [isTesting, setIsTesting] = useState(false);
   const [canTest, setCanTest] = useState(false);
   const [copyResult, setCopyResult] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     params.then((p) => setBotId(Number(p.id)));
@@ -100,6 +103,22 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
     }
   };
 
+  const deleteCurrentBot = async () => {
+    if (!botId) return;
+    setIsDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`/api/dashboard/bots/${botId}`, { method: "DELETE" });
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+      if (!res.ok) throw new Error(data.error || "Delete failed");
+      window.location.href = "/dashboard/bots";
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : "Delete failed");
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
       <Header />
@@ -109,7 +128,16 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
             <h1 className="text-3xl font-semibold tracking-tight">LINE Setup</h1>
             <p className="text-sm text-zinc-600">คู่มือการตั้งค่า LINE Developers สำหรับบอทตัวนี้</p>
           </div>
-          <Link href="/dashboard/bots" className="rounded-full border px-4 py-2 text-sm">Back</Link>
+          <div className="flex gap-2">
+            <Link href="/dashboard/bots" className="rounded-full border px-4 py-2 text-sm">Back</Link>
+            <button
+              type="button"
+              onClick={() => setDeleteConfirmOpen(true)}
+              className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700"
+            >
+              Delete bot
+            </button>
+          </div>
         </div>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
@@ -229,6 +257,31 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
           {copyResult && <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{copyResult}</div>}
         </section>
       </main>
+
+      {deleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
+          <div className="w-full max-w-lg rounded-[2rem] bg-white p-6 shadow-2xl">
+            <h3 className="text-xl font-semibold text-zinc-950">ลบบอทนี้ใช่ไหม</h3>
+            <p className="mt-3 text-sm leading-6 text-zinc-600">
+              การลบบอทจะลบข้อมูล FAQ, chat log และประวัติการใช้งานของบอทตัวนี้อย่างถาวร และไม่สามารถกู้คืนได้
+            </p>
+            {deleteError && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{deleteError}</div>}
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <button type="button" onClick={() => setDeleteConfirmOpen(false)} className="rounded-full border px-5 py-3 text-sm">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteCurrentBot}
+                disabled={isDeleting}
+                className="rounded-full bg-red-600 px-5 py-3 text-sm text-white disabled:opacity-40"
+              >
+                {isDeleting ? "Deleting..." : "Delete bot"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

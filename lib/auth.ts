@@ -72,16 +72,26 @@ export async function getSessionUser() {
   if (!token) return null;
 
   const tokenHash = hashToken(token);
-  const result = await executeQuery<SessionUser & { token_hash: string }>(
-    `SELECT u.id, u.email, u.full_name, u.role, u.credit_balance, u.email_verified_at, s.token_hash
-     FROM auth_sessions s
-     INNER JOIN users u ON u.id = s.user_id
-     WHERE s.token_hash = ? AND s.expires_at > NOW()
+  const sessionResult = await executeQuery<{ user_id: number }>(
+    `SELECT user_id
+     FROM auth_sessions
+     WHERE token_hash = ? AND expires_at > NOW()
      LIMIT 1`,
     [tokenHash]
   );
 
-  return result.rows[0] ?? null;
+  const session = sessionResult.rows[0];
+  if (!session) return null;
+
+  const userResult = await executeQuery<SessionUser>(
+    `SELECT id, email, full_name, role, credit_balance, email_verified_at
+     FROM users
+     WHERE id = ?
+     LIMIT 1`,
+    [session.user_id]
+  );
+
+  return userResult.rows[0] ?? null;
 }
 
 export async function getSessionUserId() {
