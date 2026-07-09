@@ -133,7 +133,7 @@ export default function Home() {
           <div className="relative">
             <div className="absolute -inset-5 rounded-[2rem] bg-white/70 blur-2xl" />
             <Image
-              src="/landing-ai-bot-hero.svg"
+              src="/landing-ai-bot-hero.png"
               alt="AI LINE chat bot helping a business answer customers"
               width={1400}
               height={900}
