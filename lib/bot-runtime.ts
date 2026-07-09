@@ -66,7 +66,7 @@ function getFAQMatchScore(question: string, faqQuestion: string): number {
 
 async function searchFAQ(botId: number, question: string): Promise<FAQ | null> {
   try {
-    const faqData = (await getFAQData(botId)).filter((faq) => faq.is_active === 1);
+    const faqData = (await getFAQData(botId)).filter((faq) => faq.is_active === 1 && faq.faq_status !== "draft" && faq.faq_status !== "archived");
     const normalizedQuestion = normalizeText(question);
 
     let bestMatch: { faq: FAQ; score: number } | null = null;
@@ -135,6 +135,15 @@ export async function generateBotAnswer(
         : credit.reason === "suspended"
           ? "บอทนี้ถูกระงับการใช้งานอยู่ในขณะนี้"
           : FALLBACK_MESSAGE;
+    if (options.userId) {
+      saveChatLog({
+        userId: options.userId,
+        botId,
+        question,
+        answer: blockedReply,
+        source: "fallback",
+      }).catch((err) => console.error("Failed to save chat log:", err));
+    }
     return { reply: blockedReply, source: "fallback" };
   }
 

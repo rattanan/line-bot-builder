@@ -25,6 +25,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   const [testResult, setTestResult] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
   const [canTest, setCanTest] = useState(false);
+  const [copyResult, setCopyResult] = useState<string | null>(null);
 
   useEffect(() => {
     params.then((p) => setBotId(Number(p.id)));
@@ -44,6 +45,17 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   }, [botId]);
 
   const webhookUrl = botId && canTest ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/line/webhook/${botId}` : "";
+  const appOrigin = typeof window !== "undefined" ? window.location.origin : "";
+  const embedCode =
+    botId && bot
+      ? `<script src="${appOrigin}/embed/chat-widget.js" data-tenant-id="${botId}" data-bot-name="${escapeAttr(bot.bot_name)}" data-theme-color="#06C755" data-greeting-message="สวัสดีครับ มีอะไรให้ช่วยไหมครับ" data-logo-url=""></script>`
+      : "";
+
+  const copyEmbedCode = async () => {
+    if (!embedCode) return;
+    await navigator.clipboard.writeText(embedCode);
+    setCopyResult("คัดลอก embed code แล้ว");
+  };
 
   const saveConnection = async () => {
     if (!botId) return;
@@ -104,6 +116,9 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
           <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
             <h2 className="text-lg font-semibold">วิธีตั้งค่า LINE Developers</h2>
             <div className="mt-4 space-y-4 text-sm leading-7 text-zinc-700">
+              <Link href={`/dashboard/bots/${botId || ""}/knowledge`} className="inline-flex rounded-full border px-4 py-2 text-sm">
+                Review Knowledge
+              </Link>
               <Step title="1) สร้าง LINE Messaging API Channel">
                 เข้า LINE Developers Console แล้วสร้าง Provider ใหม่ จากนั้นสร้าง Channel ประเภท Messaging API
               </Step>
@@ -181,9 +196,36 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
         </section>
+
+        <section className="mt-6 rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <h2 className="text-lg font-semibold">Website Chat Widget</h2>
+              <p className="mt-2 text-sm leading-6 text-zinc-600">
+                นำโค้ดนี้ไปวางก่อนปิดแท็ก body ของเว็บไซต์ลูกค้า เพื่อแสดงปุ่มแชทมุมขวาล่าง
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={copyEmbedCode}
+              disabled={!embedCode}
+              className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40"
+            >
+              Copy Embed Code
+            </button>
+          </div>
+          <pre className="mt-4 overflow-auto rounded-2xl border bg-zinc-950 p-4 text-xs leading-6 text-zinc-100">
+            {embedCode || "กำลังโหลด embed code..."}
+          </pre>
+          {copyResult && <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{copyResult}</div>}
+        </section>
       </main>
     </div>
   );
+}
+
+function escapeAttr(value: string) {
+  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function Step({ title, children }: { title: string; children: React.ReactNode }) {

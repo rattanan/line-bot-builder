@@ -32,6 +32,9 @@ export default async function BotsPage() {
               <h2 className="text-xl font-semibold">{bot.bot_name}</h2>
               <p className="mt-1 text-sm text-zinc-600">{bot.business_name}</p>
               <div className="mt-4 flex gap-2">
+                <Link href={`/dashboard/bots/${bot.id}/knowledge`} className="rounded-full border px-4 py-2 text-sm">
+                  Knowledge
+                </Link>
                 <Link href={`/dashboard/bots/${bot.id}/faqs`} className="rounded-full bg-[#06C755] px-4 py-2 text-sm text-white">
                   FAQs
                 </Link>

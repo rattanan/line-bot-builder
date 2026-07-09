@@ -1,0 +1,22 @@
+CREATE TABLE IF NOT EXISTS `bot_knowledge_candidates` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `bot_id` INT UNSIGNED NOT NULL,
+  `wizard_id` INT NOT NULL,
+  `question` VARCHAR(255) NOT NULL,
+  `answer` TEXT NOT NULL,
+  `category` VARCHAR(100) DEFAULT NULL,
+  `confidence_score` DECIMAL(5,4) NOT NULL DEFAULT 0,
+  `source_type` ENUM('description','image','website') NOT NULL,
+  `source_ref` VARCHAR(2048) DEFAULT NULL,
+  `language_code` VARCHAR(10) NOT NULL DEFAULT 'th',
+  `status` ENUM('draft','approved','rejected','merged') NOT NULL DEFAULT 'draft',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_bot_knowledge_candidates_bot_id` (`bot_id`),
+  KEY `idx_bot_knowledge_candidates_wizard_id` (`wizard_id`),
+  KEY `idx_bot_knowledge_candidates_status` (`status`),
+  KEY `idx_bot_knowledge_candidates_question` (`question`),
+  CONSTRAINT `fk_bot_knowledge_candidates_bot_id` FOREIGN KEY (`bot_id`) REFERENCES `bots` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_bot_knowledge_candidates_wizard_id` FOREIGN KEY (`wizard_id`) REFERENCES `bot_knowledge_wizard` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

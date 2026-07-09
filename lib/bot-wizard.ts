@@ -2,11 +2,14 @@ import { openAICompatibleChat } from "./ai/openai-compatible";
 
 export type WizardInput = {
   storeName: string;
+  businessCategory: string;
   storeDescription: string;
+  targetCustomers: string;
   services: string;
   openingHours: string;
   contactChannels: string;
   tone: string;
+  languageCodes?: string[];
 };
 
 export type WizardOutput = {
@@ -33,16 +36,19 @@ Create a complete onboarding package for a LINE chatbot business.
 
 Business info:
 - Store/Organization name: ${input.storeName}
+- Business category: ${input.businessCategory}
 - Description: ${input.storeDescription}
+- Target customers: ${input.targetCustomers}
 - Services/Products: ${input.services}
 - Opening hours: ${input.openingHours}
 - Contact channels: ${input.contactChannels}
 - Tone: ${input.tone}
+- Target languages: ${(input.languageCodes && input.languageCodes.length ? input.languageCodes : ["th"]).join(", ")}
 
 Return ONLY valid JSON with this exact shape:
 {
   "systemPrompt": "string",
-  "faqs": [{"question":"string","answer":"string"}],
+  "faqs": [{"question":"string","answer":"string","category":"string","confidenceScore":0.0,"sourceType":"description","languageCode":"th"}],
   "profileImagePrompt": "string",
   "bannerImagePrompt": "string"
 }
@@ -75,7 +81,7 @@ export async function generateWizardContent(input: WizardInput): Promise<WizardO
     const faqs = parsed.faqs.slice(0, 20).filter((faq) => faq.question && faq.answer);
     return {
       systemPrompt: parsed.systemPrompt,
-      faqs: faqs.length ? faqs : FALLBACK.faqs,
+      faqs: faqs.length ? faqs.map((faq) => ({ question: faq.question, answer: faq.answer })) : FALLBACK.faqs,
       profileImagePrompt: parsed.profileImagePrompt,
       bannerImagePrompt: parsed.bannerImagePrompt,
     };

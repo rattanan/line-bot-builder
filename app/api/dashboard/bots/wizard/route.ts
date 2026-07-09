@@ -8,7 +8,9 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const storeName = String(body.storeName || "").trim();
+  const businessCategory = String(body.businessCategory || "general").trim();
   const storeDescription = String(body.storeDescription || "").trim();
+  const targetCustomers = String(body.targetCustomers || "").trim();
   const services = String(body.services || "").trim();
   const openingHours = String(body.openingHours || "").trim();
   const contactChannels = String(body.contactChannels || "").trim();
@@ -20,7 +22,9 @@ export async function POST(req: NextRequest) {
 
   const result = await generateWizardContent({
     storeName,
+    businessCategory,
     storeDescription,
+    targetCustomers,
     services,
     openingHours,
     contactChannels,

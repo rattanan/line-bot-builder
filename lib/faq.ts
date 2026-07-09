@@ -10,6 +10,13 @@ export type FAQ = {
   question: string;
   answer: string;
   is_active: 0 | 1;
+  source_type?: "manual" | "description" | "image" | "website";
+  source_ref?: string | null;
+  source_meta?: string | null;
+  language_code?: string;
+  faq_status?: "draft" | "active" | "archived";
+  confidence_score?: number;
+  wizard_id?: number | null;
   created_at: string;
   updated_at: string | null;
 };
@@ -21,12 +28,12 @@ export type FAQ = {
 export async function getFAQData(botId?: number): Promise<FAQ[]> {
   try {
     const result: QueryResult<FAQ> = botId
-      ? await executeQuery<FAQ>(
-          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE bot_id = ? ORDER BY id ASC",
+        ? await executeQuery<FAQ>(
+          "SELECT id, bot_id, question, answer, is_active, source_type, source_ref, source_meta, language_code, faq_status, confidence_score, wizard_id, created_at, updated_at FROM faq WHERE bot_id = ? ORDER BY id ASC",
           [botId]
         )
       : await executeQuery<FAQ>(
-          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq ORDER BY id ASC"
+          "SELECT id, bot_id, question, answer, is_active, source_type, source_ref, source_meta, language_code, faq_status, confidence_score, wizard_id, created_at, updated_at FROM faq ORDER BY id ASC"
         );
     return result.rows;
   } catch (error) {
@@ -43,7 +50,7 @@ export async function getFAQData(botId?: number): Promise<FAQ[]> {
 export async function getFAQById(id: number): Promise<FAQ | null> {
   try {
     const result: QueryResult<FAQ> = await executeQuery<FAQ>(
-      "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE id = ?",
+      "SELECT id, bot_id, question, answer, is_active, source_type, source_ref, source_meta, language_code, faq_status, confidence_score, wizard_id, created_at, updated_at FROM faq WHERE id = ?",
       [id]
     );
     return result.rows.length > 0 ? result.rows[0] : null;
@@ -62,11 +69,11 @@ export async function getFAQByQuestion(question: string, botId?: number): Promis
   try {
     const result: QueryResult<FAQ> = botId
       ? await executeQuery<FAQ>(
-          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE bot_id = ? AND question LIKE ? AND is_active = 1 ORDER BY id ASC",
+          "SELECT id, bot_id, question, answer, is_active, source_type, source_ref, source_meta, language_code, faq_status, confidence_score, wizard_id, created_at, updated_at FROM faq WHERE bot_id = ? AND question LIKE ? AND is_active = 1 ORDER BY id ASC",
           [botId, `%${question}%`]
         )
       : await executeQuery<FAQ>(
-          "SELECT id, bot_id, question, answer, is_active, created_at, updated_at FROM faq WHERE question LIKE ? AND is_active = 1 ORDER BY id ASC",
+          "SELECT id, bot_id, question, answer, is_active, source_type, source_ref, source_meta, language_code, faq_status, confidence_score, wizard_id, created_at, updated_at FROM faq WHERE question LIKE ? AND is_active = 1 ORDER BY id ASC",
           [`%${question}%`]
         );
     return result.rows;
@@ -89,7 +96,7 @@ export async function addFAQ(
 ): Promise<FAQ | null> {
   try {
     const result: QueryResult<FAQ> = await executeQuery<FAQ>(
-      "INSERT INTO faq (bot_id, question, answer, is_active) VALUES (?, ?, ?, 1)",
+      "INSERT INTO faq (bot_id, question, answer, is_active, source_type, language_code, faq_status, confidence_score) VALUES (?, ?, ?, 1, 'manual', 'th', 'active', 1.0000)",
       [botId, question, answer]
     );
 

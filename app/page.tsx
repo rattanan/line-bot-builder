@@ -1,242 +1,230 @@
 "use client";
 
 import Header from "./components/Header";
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 type Lang = "th" | "en";
 
-const copy = {
+const content = {
   th: {
-    badge: "แพลตฟอร์มสร้าง LINE Bot แบบครบวงจร",
-    title: "สร้างบอท LINE ได้เร็วขึ้น ตอบลูกค้าได้ฉลาดขึ้น",
-    subtitle:
-      "Line Bot Builder ช่วยคุณสร้างบอทหลายตัว จัดการ FAQ ต่อบอท เชื่อม LINE webhook และดูการใช้งานได้ในที่เดียว",
-    primary: "เริ่มใช้งานฟรี",
-    secondary: "ดูวิธีใช้งาน",
-    stats: [
-      { label: "บอทหลายตัว", value: "Multi-tenant" },
-      { label: "FAQ ต่อบอท", value: "Bot scoped" },
-      { label: "เครดิตใช้งาน", value: "Usage credit" },
+    switchLabel: "EN",
+    eyebrow: "LINE Bot Builder สำหรับทุกธุรกิจ",
+    title: "ให้ AI สร้าง LINE Chat Bot ให้ธุรกิจคุณ ภายใน 5 นาที",
+    subtitle: "เริ่มต้นฟรี • เติมเครดิตได้ • จ่ายเท่าที่ใช้งาน",
+    intro:
+      "ไม่ต้องเขียนโค้ด ไม่ต้องมีความรู้ด้าน AI เพียงบอกชื่อร้าน อธิบายธุรกิจสั้น ๆ หรืออัปโหลดรูปสินค้า/หน้าร้าน AI จะช่วยสร้างทุกอย่างให้ทันที",
+    primary: "เริ่มสร้างฟรี",
+    secondary: "เข้าสู่ระบบ",
+    aiTitle: "AI จะช่วยสร้างอะไรให้บ้าง",
+    aiItems: [
+      "สร้างคำถาม-คำตอบ (FAQ) อัตโนมัติ",
+      "สร้างข้อความต้อนรับลูกค้า",
+      "แนะนำเมนูและการตอบแชต",
+      "สร้างรูปโปรไฟล์และแบนเนอร์สำหรับ LINE OA",
+      "พร้อมเชื่อมต่อกับ LINE Chat Bot ได้ในไม่กี่นาที",
     ],
-    benefitsTitle: "ทำอะไรได้บ้าง",
-    benefits: [
-      "สร้าง bot ใหม่พร้อม system prompt และ FAQ เริ่มต้นได้ในไม่กี่คลิก",
-      "ผูก LINE webhook แยกตาม bot เพื่อกันข้อมูลปนกัน",
-      "เติมเครดิตและตรวจ usage ได้จาก dashboard เดียว",
+    audienceTitle: "เหมาะสำหรับ",
+    audiences: ["ร้านอาหาร", "ร้านกาแฟ", "คลินิก", "ร้านค้าออนไลน์", "โรงแรม", "บริษัท", "หน่วยงาน", "ธุรกิจทุกประเภท"],
+    pricingTitle: "ใช้งานง่าย จ่ายเฉพาะที่ใช้",
+    pricingItems: [
+      "สมัครใช้งานฟรี",
+      "ฟรีข้อความเริ่มต้นสำหรับทดลองใช้งาน",
+      "เติมเครดิตได้ตลอดเวลา",
+      "ไม่มีค่ารายเดือน จ่ายตามจำนวนข้อความที่ใช้งานจริง",
     ],
-    stepsTitle: "เริ่มต้นใช้งานง่ายๆ",
+    stepsTitle: "เริ่มได้ใน 4 ขั้นตอน",
     steps: [
-      { title: "1. สมัครสมาชิก", desc: "สร้างบัญชีและยืนยันอีเมลให้เรียบร้อย" },
-      { title: "2. สร้าง bot", desc: "กรอกข้อมูลร้านหรือองค์กร แล้วให้ระบบช่วย generate prompt" },
-      { title: "3. ใส่ LINE settings", desc: "นำ Channel Secret และ Access Token มาใส่ในหน้า settings" },
-      { title: "4. เปิดใช้งาน", desc: "เพิ่ม FAQ ทดสอบ webhook และเริ่มตอบลูกค้าได้ทันที" },
+      ["สมัครใช้งาน", "สร้างบัญชีและยืนยันอีเมล"],
+      ["บอกข้อมูลธุรกิจ", "กรอกชื่อร้าน ใส่ URL หรืออัปโหลดรูปสินค้า"],
+      ["ตรวจคำตอบที่ AI สร้าง", "เลือก FAQ ที่ต้องการเปิดใช้งาน"],
+      ["เชื่อมต่อ LINE OA", "นำ token ไปใส่ แล้วเริ่มตอบลูกค้า"],
     ],
-    ctaTitle: "พร้อมเริ่มสร้างบอทของคุณแล้วหรือยัง?",
-    ctaDesc: "สมัครใช้งานเพื่อสร้าง LINE Bot ที่ดูแลง่าย ปรับได้ตามธุรกิจของคุณ",
-    footerNote: "รองรับทีมที่มีหลายบอท หลายแบรนด์ และหลาย workflow ในที่เดียว",
-    langLabel: "EN",
+    finalTitle: "ให้ AI ดูแลการตอบคำถามลูกค้า เพื่อให้คุณมีเวลาทำธุรกิจมากขึ้น",
+    finalText: "เริ่มสร้าง LINE Chat Bot ของคุณวันนี้ ใช้เวลาไม่ถึง 5 นาที",
   },
   en: {
-    badge: "All-in-one LINE bot builder",
-    title: "Build LINE bots faster and reply smarter",
-    subtitle:
-      "Line Bot Builder helps you create multiple bots, manage bot-scoped FAQs, connect LINE webhooks, and track usage in one place.",
-    primary: "Get started free",
-    secondary: "See how it works",
-    stats: [
-      { label: "Multiple bots", value: "Multi-tenant" },
-      { label: "FAQ per bot", value: "Bot scoped" },
-      { label: "Usage credits", value: "Usage credit" },
+    switchLabel: "TH",
+    eyebrow: "LINE Bot Builder for every business",
+    title: "Let AI create a LINE Chat Bot for your business in 5 minutes",
+    subtitle: "Start free • Top up credits • Pay as you use",
+    intro:
+      "No coding and no AI knowledge needed. Tell us your store name, describe your business, or upload product and storefront images. AI helps generate the essentials instantly.",
+    primary: "Start free",
+    secondary: "Login",
+    aiTitle: "What AI creates for you",
+    aiItems: [
+      "Automatic FAQ drafts",
+      "Customer greeting messages",
+      "Chat response and menu suggestions",
+      "Profile and banner prompts for LINE OA",
+      "Ready to connect with your LINE Chat Bot in minutes",
     ],
-    benefitsTitle: "What you can do",
-    benefits: [
-      "Create a new bot with system prompt and starter FAQs in just a few clicks.",
-      "Keep each LINE webhook isolated per bot so data never mixes.",
-      "Top up credits and review usage from a single dashboard.",
+    audienceTitle: "Built for",
+    audiences: ["Restaurants", "Coffee shops", "Clinics", "Online stores", "Hotels", "Companies", "Organizations", "Any business"],
+    pricingTitle: "Simple usage-based pricing",
+    pricingItems: [
+      "Free signup",
+      "Starter messages included",
+      "Top up credits any time",
+      "No monthly fee, pay only for real message usage",
     ],
-    stepsTitle: "Simple setup",
+    stepsTitle: "Launch in 4 steps",
     steps: [
-      { title: "1. Sign up", desc: "Create an account and verify your email." },
-      { title: "2. Create a bot", desc: "Add your business details and let the system generate prompts." },
-      { title: "3. Add LINE settings", desc: "Paste your Channel Secret and Access Token in settings." },
-      { title: "4. Go live", desc: "Add FAQs, test the webhook, and start replying to customers." },
+      ["Sign up", "Create your account and verify email"],
+      ["Add business knowledge", "Enter store details, add a URL, or upload images"],
+      ["Review AI drafts", "Approve the FAQs you want to activate"],
+      ["Connect LINE OA", "Add your tokens and start serving customers"],
     ],
-    ctaTitle: "Ready to build your bot?",
-    ctaDesc: "Create a LINE bot that is easy to manage and fits your business.",
-    footerNote: "Designed for teams with multiple bots, brands, and workflows.",
-    langLabel: "TH",
+    finalTitle: "Let AI handle customer questions so you can spend more time growing your business",
+    finalText: "Start building your LINE Chat Bot today in less than 5 minutes.",
   },
 } as const;
 
-const featureCards = [
-  {
-    title: "Dashboard",
-    description: "เห็นสถานะ bot, เครดิต, FAQ และ usage log ในมุมมองเดียว",
-  },
-  {
-    title: "AI Setup Wizard",
-    description: "ช่วย generate prompt, FAQ, profile prompt และ banner prompt ให้อัตโนมัติ",
-  },
-  {
-    title: "Admin Portal",
-    description: "ดูทุก user, ทุก bot, และจัดการเครดิตได้จากศูนย์กลาง",
-  },
-];
-
 export default function Home() {
-  const [lang, setLang] = useState<Lang>("th");
-
-  useEffect(() => {
+  const [lang, setLang] = useState<Lang>(() => {
+    if (typeof window === "undefined") return "th";
     const saved = window.localStorage.getItem("landing-lang");
-    if (saved === "th" || saved === "en") setLang(saved);
-  }, []);
+    return saved === "th" || saved === "en" ? saved : "th";
+  });
 
   useEffect(() => {
     window.localStorage.setItem("landing-lang", lang);
     document.documentElement.lang = lang;
   }, [lang]);
 
-  const t = copy[lang];
-  const gradient = useMemo(
-    () =>
-      lang === "th"
-        ? "bg-[radial-gradient(circle_at_top_left,rgba(244,244,245,0.95),white_38%,#f8fafc_100%)]"
-        : "bg-[radial-gradient(circle_at_top_left,rgba(238,242,255,0.92),white_40%,#f8fafc_100%)]",
-    [lang]
-  );
+  const t = content[lang];
 
   return (
-    <div className={`min-h-screen text-zinc-950 ${gradient}`}>
+    <div className="min-h-screen bg-[#fbfaf7] text-zinc-950">
       <Header />
-      <main className="mx-auto max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 scroll-smooth">
-        <section
-          id="hero"
-          className="relative overflow-hidden rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-lime-50 px-6 py-10 shadow-[0_18px_60px_rgba(24,24,27,0.08)] backdrop-blur-md sm:px-8 sm:py-12"
-        >
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_right,rgba(6,199,85,0.08),transparent_35%),linear-gradient(135deg,rgba(15,23,42,0.02)_0%,transparent_40%,rgba(15,23,42,0.01)_100%)]" />
-          <div className="flex items-start justify-between gap-4">
-            <span className="inline-flex rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-emerald-700 shadow-sm">
-              {t.badge}
-            </span>
-            <button
-              onClick={() => setLang((current) => (current === "th" ? "en" : "th"))}
-              className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-semibold tracking-[0.18em] text-emerald-700 transition-colors hover:bg-emerald-50"
-              aria-label="Switch language"
-            >
-              {t.langLabel}
-            </button>
-          </div>
-
-          <div className="mt-10 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-            <div>
-              <h1 className="max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-                {t.title}
-              </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-zinc-600 sm:text-lg">
-                {t.subtitle}
-              </p>
-
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center justify-center rounded-full bg-[#06C755] px-5 py-3 text-sm font-medium text-white transition-transform hover:-translate-y-0.5"
-                >
-                  {t.primary}
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="inline-flex items-center justify-center rounded-full border border-emerald-200 bg-white px-5 py-3 text-sm font-medium text-emerald-800 transition-colors hover:bg-emerald-50"
-                >
-                  {t.secondary}
-                </Link>
-              </div>
-
-              <div className="mt-8 grid gap-3 sm:grid-cols-3">
-                {t.stats.map((item) => (
-                  <div key={item.label} className="rounded-2xl border border-emerald-100 bg-white/90 p-4 shadow-[0_1px_0_rgba(255,255,255,0.85)]">
-                    <div className="text-xs uppercase tracking-[0.18em] text-emerald-600">{item.label}</div>
-                    <div className="mt-2 text-lg font-semibold">{item.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="grid gap-4">
-              {featureCards.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 shadow-[0_1px_0_rgba(255,255,255,0.85)]"
-                >
-                  <div className="text-sm font-semibold text-emerald-900">{card.title}</div>
-                  <p className="mt-2 text-sm leading-6 text-emerald-900/75">{card.description}</p>
-                </div>
-              ))}
-              <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-[#06C755] to-emerald-600 p-6 text-white shadow-xl">
-                <div className="text-xs uppercase tracking-[0.22em] text-emerald-50">{t.ctaTitle}</div>
-                <p className="mt-3 text-sm leading-6 text-white/85">{t.ctaDesc}</p>
-                <Link
-                  href="/register"
-                  className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-sm font-medium text-emerald-700 transition-transform hover:-translate-y-0.5"
-                >
-                  {t.primary}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="benefits" className="mt-8 grid gap-6 lg:grid-cols-[1fr_1fr]">
-          <div className="rounded-[2rem] border border-emerald-100 bg-emerald-50 p-7 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-emerald-700">{t.benefitsTitle}</span>
-            <ul className="mt-5 space-y-4">
-              {t.benefits.map((item) => (
-                <li key={item} className="flex gap-3 text-sm leading-6 text-emerald-900/80">
-                  <span className="mt-1 inline-block h-2.5 w-2.5 rounded-full bg-[#06C755]" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div id="steps" className="rounded-[2rem] border border-emerald-100 bg-white/90 p-7 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-emerald-700">{t.stepsTitle}</span>
-            <div className="mt-5 grid gap-4">
-              {t.steps.map((step, index) => (
-                <div key={step.title} className="flex gap-4 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#06C755] text-sm font-semibold text-white">
-                    {index + 1}
-                  </div>
-                  <div>
-                    <div className="font-medium text-emerald-950">{step.title}</div>
-                    <p className="mt-1 text-sm leading-6 text-emerald-900/75">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="cta" className="mt-8 rounded-[2rem] border border-emerald-100 bg-gradient-to-br from-[#06C755] to-emerald-600 px-7 py-8 text-white shadow-[0_18px_60px_rgba(24,24,27,0.18)]">
-          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <h2 className="text-2xl font-semibold tracking-tight">{t.ctaTitle}</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/85">{t.footerNote}</p>
-            </div>
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition-transform hover:-translate-y-0.5"
+      <main className="overflow-hidden">
+        <section id="hero" className="mx-auto grid max-w-7xl gap-10 px-4 pb-16 pt-10 sm:px-6 lg:grid-cols-[0.92fr_1.08fr] lg:items-center lg:px-8 lg:pb-20 lg:pt-14">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold tracking-[0.18em] text-zinc-600">
+                {t.eyebrow}
+              </span>
+              <button
+                onClick={() => setLang((current) => (current === "th" ? "en" : "th"))}
+                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-semibold text-zinc-800 shadow-sm transition-colors hover:border-[#06C755]"
               >
+                {t.switchLabel}
+              </button>
+            </div>
+
+            <h1 className="mt-8 max-w-3xl text-4xl font-semibold leading-tight tracking-normal text-zinc-950 sm:text-5xl lg:text-[4rem]">
+              {t.title}
+            </h1>
+            <p className="mt-5 text-lg font-semibold text-[#06A847]">{t.subtitle}</p>
+            <p className="mt-5 max-w-2xl text-base leading-8 text-zinc-600">{t.intro}</p>
+
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link href="/register" className="rounded-full bg-[#06C755] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(6,199,85,0.25)] transition-transform hover:-translate-y-0.5">
                 {t.primary}
               </Link>
-              <Link
-                href="/login"
-                className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-white/10"
-              >
-                Login
+              <Link href="/login" className="rounded-full border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition-colors hover:border-zinc-400">
+                {t.secondary}
               </Link>
             </div>
+          </div>
+
+          <div className="relative">
+            <div className="absolute -inset-5 rounded-[2rem] bg-white/70 blur-2xl" />
+            <Image
+              src="/landing-ai-bot-hero.svg"
+              alt="AI LINE chat bot helping a business answer customers"
+              width={1400}
+              height={900}
+              priority
+              className="relative w-full rounded-[28px] border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(39,39,42,0.12)]"
+            />
+          </div>
+        </section>
+
+        <section id="features" className="border-y border-zinc-200 bg-white">
+          <div className="mx-auto grid max-w-7xl gap-6 px-4 py-14 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:px-8">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#06A847]">{t.aiTitle}</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-normal text-zinc-950">
+                AI เตรียมฐานความรู้ให้พร้อมใช้งาน
+              </h2>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {t.aiItems.map((item) => (
+                <div key={item} className="rounded-xl border border-zinc-200 bg-[#fbfaf7] p-4 text-sm leading-6 text-zinc-700">
+                  <span className="mr-2 text-[#06C755]">✓</span>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="audience" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#06A847]">{t.audienceTitle}</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-normal">ธุรกิจทุกแบบที่ต้องตอบลูกค้าซ้ำ ๆ</h2>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              {t.audiences.map((item) => (
+                <span key={item} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-medium text-zinc-700 shadow-sm">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="pricing" className="bg-[#111827] text-white">
+          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#80F0A6]">{t.pricingTitle}</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-normal">{t.finalTitle}</h2>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {t.pricingItems.map((item) => (
+                <div key={item} className="rounded-xl border border-white/10 bg-white/6 p-4 text-sm leading-6 text-white/82">
+                  <span className="mr-2 text-[#80F0A6]">•</span>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="steps" className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+          <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#06A847]">{t.stepsTitle}</p>
+              <h2 className="mt-4 text-3xl font-semibold tracking-normal">ง่ายพอให้เริ่มวันนี้</h2>
+            </div>
+            <Link href="/register" className="w-fit rounded-full bg-[#06C755] px-5 py-3 text-sm font-semibold text-white">
+              {t.primary}
+            </Link>
+          </div>
+          <div className="grid gap-4 md:grid-cols-4">
+            {t.steps.map(([title, desc], index) => (
+              <div key={title} className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-950 text-sm font-semibold text-white">{index + 1}</div>
+                <h3 className="mt-5 font-semibold">{title}</h3>
+                <p className="mt-2 text-sm leading-6 text-zinc-600">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section id="cta" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <div className="rounded-[28px] border border-zinc-200 bg-white px-6 py-8 shadow-[0_18px_60px_rgba(39,39,42,0.08)] sm:px-8 lg:flex lg:items-center lg:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold tracking-normal">{t.finalText}</h2>
+              <p className="mt-3 text-sm leading-6 text-zinc-600">{t.subtitle}</p>
+            </div>
+            <Link href="/register" className="mt-6 inline-flex rounded-full bg-[#06C755] px-6 py-3 text-sm font-semibold text-white lg:mt-0">
+              {t.primary}
+            </Link>
           </div>
         </section>
       </main>
