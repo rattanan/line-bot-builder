@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createVerificationToken, createUser, ensureSeedAdminUser } from "@/lib/users";
+import { createVerificationToken, createUser } from "@/lib/users";
 import { sendMail } from "@/lib/email";
 
 export async function POST(req: NextRequest) {
-  await ensureSeedAdminUser();
   const { email, fullName, password } = await req.json();
   if (!email || !fullName || !password) {
     return NextResponse.json({ error: "email, fullName and password are required" }, { status: 400 });

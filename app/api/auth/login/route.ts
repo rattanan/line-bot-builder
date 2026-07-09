@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSession, SESSION_COOKIE } from "@/lib/auth";
-import { ensureSeedAdminUser, verifyUserCredentials } from "@/lib/users";
+import { verifyUserCredentials } from "@/lib/users";
 
 export async function POST(req: NextRequest) {
   try {
-    await ensureSeedAdminUser();
     const { email, password } = await req.json();
 
     if (!email || !password) {
