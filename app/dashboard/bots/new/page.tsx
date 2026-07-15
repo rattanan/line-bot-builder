@@ -177,36 +177,36 @@ export default function NewBotWizardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(237,255,242,0.9),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
-      <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <div className="app-page-header mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">AI Knowledge Onboarding Wizard</h1>
-            <p className="mt-2 text-sm text-zinc-600">Create a bot, generate initial knowledge, and review drafts before publishing.</p>
+            <p className="mt-2 text-sm text-zinc-600">Create an agent, generate initial knowledge, and review drafts before publishing.</p>
           </div>
-          <Link href="/dashboard/bots" className="rounded-full border px-4 py-2 text-sm">
+          <Link href="/dashboard/bots" className="app-button-outline">
             Back
           </Link>
         </div>
 
-        <div className="mb-8 flex gap-3">
+        <div className="mb-6 grid grid-cols-3 gap-2 rounded-2xl border border-slate-200/80 bg-white/70 p-2 dark:border-white/10 dark:bg-white/[0.03]">
           {[1, 2, 3].map((n) => (
-            <div key={n} className={`rounded-full px-4 py-2 text-sm ${step === n ? "bg-[#06C755] text-white" : "bg-white text-zinc-500"}`}>
-              Step {n}
+            <div key={n} className={`rounded-xl px-4 py-2.5 text-center text-sm font-medium transition ${step === n ? "bg-blue-600 text-white shadow-sm" : "text-zinc-500"}`}>
+              {n}. {n === 1 ? "Identity" : n === 2 ? "Knowledge" : "Review"}
             </div>
           ))}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr]">
-          <section className="rounded-[2rem] border bg-white/90 p-6 shadow-sm">
+          <section className="app-card p-6">
             {step === 1 && (
               <>
-                <h2 className="text-lg font-semibold">Bot identity</h2>
+                <h2 className="text-lg font-semibold">Agent identity</h2>
                 <div className="mt-4 grid gap-3">
-                  <input className="rounded-2xl border px-4 py-3 text-sm" placeholder="Bot name" value={form.botName} onChange={(e) => update("botName", e.target.value)} />
+                  <input className="rounded-2xl border px-4 py-3 text-sm" placeholder="Agent name" value={form.botName} onChange={(e) => update("botName", e.target.value)} />
                   <input className="rounded-2xl border px-4 py-3 text-sm" placeholder="Website URL (optional)" value={form.websiteUrl} onChange={(e) => update("websiteUrl", e.target.value)} />
-                  <button disabled={!canMoveToStep2} onClick={() => setStep(2)} className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
+                  <button disabled={!canMoveToStep2} onClick={() => setStep(2)} className="app-button-primary disabled:opacity-40">
                     Continue
                   </button>
                 </div>
@@ -241,20 +241,20 @@ export default function NewBotWizardPage() {
                     )}
                   </label>
                   <div className="flex gap-3">
-                    <button onClick={() => setStep(1)} type="button" className="rounded-full border px-5 py-3 text-sm">
+                    <button onClick={() => setStep(1)} type="button" className="app-button-outline">
                       Back
                     </button>
-                    <button disabled={!canGenerate || isGenerating} onClick={generate} type="button" className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
+                    <button disabled={!canGenerate || isGenerating} aria-busy={isGenerating} onClick={generate} type="button" className="app-button-primary disabled:opacity-40">
                       {isGenerating ? <LoadingSpinner label="กำลังสร้าง FAQ..." /> : "Generate knowledge"}
                     </button>
                   </div>
                   {isGenerating && (
                     <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                       <div className="flex items-center gap-3">
-                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-[#06C755]" aria-hidden="true" />
+                        <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-blue-600" aria-hidden="true" />
                         <div>
                           <p className="font-medium">กำลังให้ AI วิเคราะห์ข้อมูลร้านและสร้าง FAQ</p>
-                          <p className="mt-1 text-xs text-emerald-700">โปรดรอสักครู่ ระบบกำลังสร้างคำถาม-คำตอบเริ่มต้นให้บอทของคุณ</p>
+                          <p className="mt-1 text-xs text-emerald-700">โปรดรอสักครู่ ระบบกำลังสร้างคำถาม-คำตอบเริ่มต้นให้เอเจนต์ของคุณ</p>
                         </div>
                       </div>
                     </div>
@@ -266,7 +266,7 @@ export default function NewBotWizardPage() {
             {step === 3 && (
               <>
                 <h2 className="text-lg font-semibold">Approve FAQ</h2>
-                <p className="mt-2 text-sm text-zinc-600">FAQ ที่เหลือใน Preview จะถูกบันทึกเป็น active FAQ ให้บอททันที</p>
+                <p className="mt-2 text-sm text-zinc-600">FAQ ที่เหลือใน Preview จะถูกบันทึกเป็น active FAQ ให้เอเจนต์ทันที</p>
                 <div className="mt-4 grid gap-3">
                   {draftFaqs.map((faq, index) => (
                     <article
@@ -292,13 +292,13 @@ export default function NewBotWizardPage() {
                   )}
                 </div>
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <button onClick={() => setStep(2)} type="button" className="rounded-full border px-5 py-3 text-sm">
+                  <button onClick={() => setStep(2)} type="button" className="app-button-outline">
                     Back
                   </button>
-                  <button onClick={saveBot} disabled={isSaving || !draftFaqs.length} className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
-                    {isSaving ? "Creating bot..." : `Approve ${draftFaqs.length} FAQ & Create Bot`}
+                  <button onClick={saveBot} disabled={isSaving || !draftFaqs.length} aria-busy={isSaving} className="app-button-primary disabled:opacity-40">
+                    {isSaving ? "Creating agent..." : `Approve ${draftFaqs.length} FAQ & Create Agent`}
                   </button>
-                  <button onClick={() => router.push("/dashboard/bots")} type="button" className="rounded-full border px-5 py-3 text-sm">
+                  <button onClick={() => router.push("/dashboard/bots")} type="button" className="app-button-outline">
                     Skip review
                   </button>
                 </div>
@@ -308,7 +308,7 @@ export default function NewBotWizardPage() {
             {error && <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
           </section>
 
-          <section className="rounded-[2rem] border bg-white/90 p-6 shadow-sm">
+          <section className="app-card p-6">
             <h2 className="text-lg font-semibold">Preview</h2>
             {!wizard ? (
               <div className="mt-4 rounded-2xl border border-dashed p-8 text-sm text-zinc-500">Generate content to preview system prompt and FAQs.</div>
@@ -345,7 +345,7 @@ export default function NewBotWizardPage() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-[0.18em] text-zinc-400">Ready to approve</p>
-                  <p className="mt-2 text-sm text-zinc-600">{draftFaqs.length ? `${draftFaqs.length} FAQ(s) will be active after bot creation` : "No FAQ selected"}</p>
+                  <p className="mt-2 text-sm text-zinc-600">{draftFaqs.length ? `${draftFaqs.length} FAQ(s) will be active after agent creation` : "No FAQ selected"}</p>
                 </div>
               </div>
             )}

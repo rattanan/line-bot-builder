@@ -17,7 +17,7 @@ function getResendClient() {
 export async function sendMail(message: MailMessage) {
   const client = getResendClient();
   if (!client) {
-    console.log(`[mail:${message.to}] ${message.subject}\n${message.text}`);
+    console.warn("Email delivery skipped because RESEND_API_KEY is not configured");
     return;
   }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createVerificationToken, createUser } from "@/lib/users";
 import { sendMail } from "@/lib/email";
+import { getAppUrl } from "@/lib/app-url";
 
 export async function POST(req: NextRequest) {
   const { email, fullName, password } = await req.json();
@@ -11,8 +12,8 @@ export async function POST(req: NextRequest) {
   let user;
   try {
     user = await createUser({ email: String(email), fullName: String(fullName), password: String(password) });
-  } catch (error: any) {
-    if (error?.code === "EMAIL_EXISTS") {
+  } catch (error: unknown) {
+    if (error instanceof Error && "code" in error && error.code === "EMAIL_EXISTS") {
       return NextResponse.json({ error: "This email is already registered" }, { status: 409 });
     }
     throw error;
@@ -22,9 +23,8 @@ export async function POST(req: NextRequest) {
   }
 
   const token = await createVerificationToken(user.id);
-  const verifyUrl = new URL("/api/auth/verify-email", req.url);
+  const verifyUrl = getAppUrl(req, "/api/auth/verify-email");
   verifyUrl.searchParams.set("token", token);
-  console.log(`[auth:register] verification link for ${user.email}: ${verifyUrl.toString()}`);
   await sendMail({
     to: user.email,
     subject: "Verify your email",

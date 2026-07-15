@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS `chat_log` (
   `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `user_id` VARCHAR(100) NOT NULL COMMENT 'LINE user ID',
   `bot_id` INT UNSIGNED DEFAULT NULL,
+  `channel` VARCHAR(20) NOT NULL DEFAULT 'unknown' COMMENT 'Conversation channel: line, web, test, or unknown',
   `user_message` TEXT NOT NULL COMMENT 'User\'s incoming message',
   `bot_reply` TEXT NOT NULL COMMENT 'Bot\'s reply message',
   `answer_source` ENUM('mysql_faq', 'ai', 'fallback') NOT NULL DEFAULT 'fallback' COMMENT 'Source of the answer',
@@ -10,5 +11,6 @@ CREATE TABLE IF NOT EXISTS `chat_log` (
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   INDEX `idx_bot_id` (`bot_id`),
+  INDEX `idx_bot_channel` (`bot_id`, `channel`),
   INDEX `idx_created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

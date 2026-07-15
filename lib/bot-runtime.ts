@@ -2,6 +2,7 @@ import { getBotById } from "@/lib/bots";
 import { getFAQData, FAQ } from "@/lib/faq";
 import { recordBotUsage, consumeBotCredit } from "@/lib/bot-usage";
 import { saveChatLog } from "@/lib/chat-log";
+import type { ConversationChannel } from "@/lib/chat-log";
 import { openAICompatibleChat } from "@/lib/ai/openai-compatible";
 
 const FALLBACK_MESSAGE =
@@ -99,7 +100,7 @@ function buildPrompt(bot: {
 ${bot.system_prompt}
 
 Business name: ${bot.business_name}
-Bot name: ${bot.bot_name}
+Agent name: ${bot.bot_name}
 Business description: ${bot.business_description}
 
 User question:
@@ -110,7 +111,7 @@ ${question}
 export async function generateBotAnswer(
   botId: number,
   question: string,
-  options: { userId?: string } = {}
+  options: { userId?: string; channel?: ConversationChannel; consumeCredit?: boolean } = {}
 ): Promise<{
   reply: string;
   source: "mysql_faq" | "ai" | "fallback";
@@ -120,25 +121,28 @@ export async function generateBotAnswer(
     return { reply: FALLBACK_MESSAGE, source: "fallback" };
   }
   if (bot.status !== "active") {
-    return { reply: "บอทนี้ถูกระงับการใช้งานอยู่ในขณะนี้", source: "fallback" };
+    return { reply: "เอเจนต์นี้ถูกระงับการใช้งานอยู่ในขณะนี้", source: "fallback" };
   }
 
-  const credit = await consumeBotCredit({
-    botId,
-    lineUserId: options.userId || "unknown",
-    userMessage: question,
-  });
-  if (!credit.ok) {
+  const credit = options.consumeCredit === false
+    ? null
+    : await consumeBotCredit({
+        botId,
+        lineUserId: options.userId || "unknown",
+        userMessage: question,
+      });
+  if (credit && !credit.ok) {
     const blockedReply =
       credit.reason === "insufficient"
         ? "เครดิตหมด กรุณาติดต่อผู้ดูแลระบบ"
         : credit.reason === "suspended"
-          ? "บอทนี้ถูกระงับการใช้งานอยู่ในขณะนี้"
+          ? "เอเจนต์นี้ถูกระงับการใช้งานอยู่ในขณะนี้"
           : FALLBACK_MESSAGE;
     if (options.userId) {
       saveChatLog({
         userId: options.userId,
         botId,
+        channel: options.channel,
         question,
         answer: blockedReply,
         source: "fallback",
@@ -153,20 +157,23 @@ export async function generateBotAnswer(
       saveChatLog({
         userId: options.userId,
         botId,
+        channel: options.channel,
         question,
         answer: matchedFAQ.answer,
         source: "mysql_faq",
       }).catch((err) => console.error("Failed to save chat log:", err));
     }
-    await recordBotUsage({
-      botId,
-      lineUserId: options.userId || "unknown",
-      userMessage: question,
-      creditBefore: credit.creditBefore,
-      creditAfter: credit.creditAfter,
-      status: "consumed",
-      source: "mysql_faq",
-    });
+    if (credit?.ok) {
+      await recordBotUsage({
+        botId,
+        lineUserId: options.userId || "unknown",
+        userMessage: question,
+        creditBefore: credit.creditBefore,
+        creditAfter: credit.creditAfter,
+        status: "consumed",
+        source: "mysql_faq",
+      });
+    }
     return { reply: matchedFAQ.answer, source: "mysql_faq" };
   }
 
@@ -184,11 +191,63 @@ export async function generateBotAnswer(
         saveChatLog({
           userId: options.userId,
           botId,
+          channel: options.channel,
           question,
           answer: FALLBACK_MESSAGE,
           source: "fallback",
         }).catch((err) => console.error("Failed to save chat log:", err));
       }
+      if (credit?.ok) {
+        await recordBotUsage({
+          botId,
+          lineUserId: options.userId || "unknown",
+          userMessage: question,
+          creditBefore: credit.creditBefore,
+          creditAfter: credit.creditAfter,
+          status: "consumed",
+          source: "fallback",
+        });
+      }
+      return { reply: FALLBACK_MESSAGE, source: "fallback" };
+    }
+
+    if (options.userId) {
+      saveChatLog({
+        userId: options.userId,
+        botId,
+        channel: options.channel,
+        question,
+        answer,
+        source: "ai",
+        }).catch((err) => console.error("Failed to save chat log:", err));
+    }
+
+    if (credit?.ok) {
+      await recordBotUsage({
+        botId,
+        lineUserId: options.userId || "unknown",
+        userMessage: question,
+        creditBefore: credit.creditBefore,
+        creditAfter: credit.creditAfter,
+        status: "consumed",
+        source: "ai",
+      });
+    }
+
+    return { reply: answer, source: "ai" };
+  } catch (error) {
+    console.error("AI Provider Error:", error);
+    if (options.userId) {
+      saveChatLog({
+        userId: options.userId,
+        botId,
+        channel: options.channel,
+        question,
+        answer: FALLBACK_MESSAGE,
+        source: "fallback",
+        }).catch((err) => console.error("Failed to save chat log:", err));
+    }
+    if (credit?.ok) {
       await recordBotUsage({
         botId,
         lineUserId: options.userId || "unknown",
@@ -198,50 +257,7 @@ export async function generateBotAnswer(
         status: "consumed",
         source: "fallback",
       });
-      return { reply: FALLBACK_MESSAGE, source: "fallback" };
     }
-
-    if (options.userId) {
-      saveChatLog({
-        userId: options.userId,
-        botId,
-        question,
-        answer,
-        source: "ai",
-        }).catch((err) => console.error("Failed to save chat log:", err));
-    }
-
-    await recordBotUsage({
-      botId,
-      lineUserId: options.userId || "unknown",
-      userMessage: question,
-      creditBefore: credit.creditBefore,
-      creditAfter: credit.creditAfter,
-      status: "consumed",
-      source: "ai",
-    });
-
-    return { reply: answer, source: "ai" };
-  } catch (error) {
-    console.error("AI Provider Error:", error);
-    if (options.userId) {
-      saveChatLog({
-        userId: options.userId,
-        botId,
-        question,
-        answer: FALLBACK_MESSAGE,
-        source: "fallback",
-        }).catch((err) => console.error("Failed to save chat log:", err));
-    }
-    await recordBotUsage({
-      botId,
-      lineUserId: options.userId || "unknown",
-      userMessage: question,
-      creditBefore: credit.creditBefore,
-      creditAfter: credit.creditAfter,
-      status: "consumed",
-      source: "fallback",
-    });
     return { reply: FALLBACK_MESSAGE, source: "fallback" };
   }
 }

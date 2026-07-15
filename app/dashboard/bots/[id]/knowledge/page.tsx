@@ -161,25 +161,25 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <div className="app-page-header mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Knowledge Review</h1>
-            <p className="text-sm text-zinc-600">Review draft FAQs before publishing them to the bot.</p>
+            <p className="text-sm text-zinc-600">Review draft FAQs before publishing them to the agent.</p>
           </div>
           <div className="flex gap-2">
-            <Link href={`/dashboard/bots/${botId || ""}/faqs`} className="rounded-full border px-4 py-2 text-sm">
-              Bot FAQs
+            <Link href={`/dashboard/bots/${botId || ""}/faqs`} className="app-button-outline">
+              Agent FAQs
             </Link>
-            <Link href={`/dashboard/bots/${botId || ""}/settings`} className="rounded-full border px-4 py-2 text-sm">
-              Bot Setting
+            <Link href={`/dashboard/bots/${botId || ""}/settings`} className="app-button-outline">
+              Agent Settings
             </Link>
           </div>
         </div>
 
-        <div className="mb-4 rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+        <div className="app-card mb-5 p-6">
           <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
             <div className="space-y-3">
               <div className="text-sm text-zinc-600">
@@ -195,11 +195,11 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
                 <button
                   onClick={runWebsiteImport}
                   disabled={!websiteUrl.trim() || syncing}
-                  className="rounded-full bg-[#06C755] px-4 py-2 text-sm text-white disabled:opacity-40"
+                  className="app-button-primary min-h-10 px-4 py-2 disabled:opacity-40"
                 >
                   {syncing ? <InlineSpinner label="กำลังทำงาน..." /> : websiteUrl.trim() ? "Start website import" : "No website URL"}
                 </button>
-                <label className="cursor-pointer rounded-full border px-4 py-2 text-sm">
+                <label className="app-button-outline min-h-10 cursor-pointer px-4 py-2">
                   Upload images
                   <input
                     type="file"
@@ -212,11 +212,11 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
                 <button
                   onClick={uploadImages}
                   disabled={!imageFiles.length || syncing}
-                  className="rounded-full bg-zinc-950 px-4 py-2 text-sm text-white disabled:opacity-40"
+                  className="app-button-secondary min-h-10 px-4 py-2 disabled:opacity-40"
                 >
                   {imageFiles.length ? `Send ${imageFiles.length} image(s)` : "Choose images first"}
                 </button>
-                <button onClick={load} className="rounded-full border px-4 py-2 text-sm">
+                <button onClick={load} className="app-button-outline min-h-10 px-4 py-2">
                   Refresh results
                 </button>
               </div>
@@ -250,7 +250,7 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
           {syncing && (
             <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
               <div className="flex items-center gap-3">
-                <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-[#06C755]" aria-hidden="true" />
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-200 border-t-blue-600" aria-hidden="true" />
                 <div>
                   <p className="font-medium">กำลังประมวลผลข้อมูลเพื่อสร้าง FAQ</p>
                   <p className="mt-1 text-xs text-emerald-700">ระบบกำลังอ่านข้อมูลจากเว็บไซต์หรือรูปภาพ แล้วสร้าง draft FAQ ให้ตรวจทาน</p>
@@ -262,11 +262,11 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
         </div>
 
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <button onClick={approveSelected} disabled={loading || !selected.length} className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40">
+          <button onClick={approveSelected} disabled={loading || !selected.length} aria-busy={loading} className="app-button-primary disabled:opacity-40">
             {loading ? "Saving..." : `Approve selected (${selected.length})`}
           </button>
-          <button onClick={() => router.push(`/dashboard/bots/${botId}/settings`)} className="rounded-full border px-5 py-3 text-sm">
-            Go to Bot Setting
+          <button onClick={() => router.push(`/dashboard/bots/${botId}/settings`)} className="app-button-outline">
+            Go to Agent Settings
           </button>
         </div>
 
@@ -277,11 +277,11 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
             return (
               <article
                 key={candidate.id}
-                className={`rounded-[2rem] border bg-white/80 p-6 shadow-sm ${isSelected ? "border-[#06C755]" : "border-black/5"}`}
+                className={`app-card p-6 ${isSelected ? "border-blue-500 ring-4 ring-blue-500/10" : ""}`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <label className="flex items-start gap-3">
-                    <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(candidate.id)} className="mt-1 h-4 w-4 accent-[#06C755]" />
+                    <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(candidate.id)} className="mt-1 h-4 w-4 accent-blue-600" />
                     <div>
                       <h2 className="text-lg font-semibold">{candidate.question}</h2>
                       <p className="mt-2 text-sm leading-6 text-zinc-700">{candidate.answer}</p>
@@ -313,17 +313,17 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
                 </details>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button type="button" onClick={() => toggleSelect(candidate.id)} className="rounded-full border px-4 py-2 text-sm">
+                  <button type="button" onClick={() => toggleSelect(candidate.id)} className="app-button-outline min-h-9 px-3 py-1.5 text-xs">
                     {isSelected ? "Unselect" : "Select"}
                   </button>
-                  <button type="button" onClick={() => deleteCandidate(candidate.id)} className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                  <button type="button" onClick={() => deleteCandidate(candidate.id)} className="app-button-danger min-h-9 px-3 py-1.5 text-xs">
                     Delete
                   </button>
                 </div>
               </article>
             );
           })}
-          {!filtered.length && <div className="rounded-[2rem] border bg-white/80 p-10 text-center text-sm text-zinc-500">No draft FAQ found.</div>}
+          {!filtered.length && <div className="app-empty-state"><h3 className="text-base font-semibold text-slate-900 dark:text-white">No draft FAQ found</h3><p className="mt-2 max-w-md text-sm text-slate-500">Import a website or upload images to generate knowledge candidates.</p></div>}
         </div>
       </main>
     </div>

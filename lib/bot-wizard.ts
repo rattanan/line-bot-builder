@@ -31,8 +31,8 @@ const FALLBACK: WizardOutput = {
 };
 
 function buildPrompt(input: WizardInput) {
-  return `You are an expert AI bot architect.
-Create a complete onboarding package for a LINE chatbot business.
+  return `You are an expert AI agent architect.
+Create a complete onboarding package for a LINE customer service agent.
 
 Business info:
 - Store/Organization name: ${input.storeName}

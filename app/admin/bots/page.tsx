@@ -11,18 +11,18 @@ export default async function AdminBotsPage() {
   const bots = await getAdminBots();
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <section className="rounded-[2rem] border border-black/5 bg-white/80 p-8 shadow-[0_10px_40px_rgba(24,24,27,0.06)]">
+        <section className="app-card p-8">
           <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-semibold tracking-tight">Bots</h1>
+            <h1 className="text-3xl font-semibold tracking-tight">Agents</h1>
           </div>
           <div className="mt-6 overflow-hidden rounded-[1.5rem] border border-zinc-200">
             <table className="w-full text-sm">
               <thead className="bg-zinc-50 text-left text-xs uppercase tracking-[0.15em] text-zinc-500">
                 <tr>
-                  <th className="px-4 py-3">Bot</th>
+                  <th className="px-4 py-3">Agent</th>
                   <th className="px-4 py-3">Owner</th>
                   <th className="px-4 py-3">Owner Credit</th>
                   <th className="px-4 py-3">Status</th>
@@ -45,7 +45,7 @@ export default async function AdminBotsPage() {
                     <td className="px-4 py-4">{bot.status}</td>
                     <td className="px-4 py-4">{bot.usage_count}</td>
                     <td className="px-4 py-4">
-                      <Link href={`/admin/bots/${bot.id}`} className="rounded-full bg-zinc-950 px-4 py-2 text-xs text-white">
+                      <Link href={`/admin/bots/${bot.id}`} className="app-button-primary min-h-9 px-3 py-1.5 text-xs">
                         Open
                       </Link>
                     </td>

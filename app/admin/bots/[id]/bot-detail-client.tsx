@@ -80,7 +80,7 @@ export default function BotDetailClient({ botId }: { botId: number }) {
       </div>
 
       <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+        <div className="app-card p-6">
           <h2 className="text-lg font-semibold">Info</h2>
           <div className="mt-4 space-y-2 text-sm text-zinc-700">
             <p>Owner: {detail.bot.owner_name}</p>
@@ -91,13 +91,13 @@ export default function BotDetailClient({ botId }: { botId: number }) {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+        <div className="app-card p-6">
           <h2 className="text-lg font-semibold">Actions</h2>
           <div className="mt-4 grid gap-3">
             <input className="rounded-2xl border px-4 py-3 text-sm" value={amount} onChange={(e) => setAmount(e.target.value)} />
             <input className="rounded-2xl border px-4 py-3 text-sm" value={reason} onChange={(e) => setReason(e.target.value)} />
             <div className="flex flex-wrap gap-2">
-              <button onClick={() => submitAction("credit")} className="rounded-full bg-[#06C755] px-4 py-2 text-sm text-white">Add Owner Credit</button>
+              <button onClick={() => submitAction("credit")} className="rounded-full bg-blue-600 px-4 py-2 text-sm text-white">Add Owner Credit</button>
               <button onClick={() => submitAction("suspend")} className="rounded-full border px-4 py-2 text-sm">Suspend</button>
               <button onClick={() => submitAction("activate")} className="rounded-full border px-4 py-2 text-sm">Activate</button>
             </div>
@@ -106,7 +106,7 @@ export default function BotDetailClient({ botId }: { botId: number }) {
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+        <div className="app-card p-6">
           <h2 className="text-lg font-semibold">Usage log</h2>
           <div className="mt-4 space-y-3">
             {detail.usageLogs.map((log) => (
@@ -122,7 +122,7 @@ export default function BotDetailClient({ botId }: { botId: number }) {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+        <div className="app-card p-6">
           <h2 className="text-lg font-semibold">Credit transactions</h2>
           <div className="mt-4 space-y-3">
             {detail.transactions.map((tx) => (

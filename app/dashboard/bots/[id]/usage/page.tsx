@@ -47,15 +47,15 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
   }, [botId]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <div className="app-page-header mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">Usage</h1>
-            <p className="text-sm text-zinc-600">Account credit balance and usage log for this bot.</p>
+            <p className="text-sm text-zinc-600">Account credit balance and usage log for this agent.</p>
           </div>
-          <Link href="/dashboard/bots" className="rounded-full border px-4 py-2 text-sm">Back</Link>
+          <Link href="/dashboard/bots" className="app-button-outline">Back to agents</Link>
         </div>
 
         <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -67,7 +67,7 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
           <StatCard label="Fallback hits" value={summary?.fallback_hits ?? 0} />
         </section>
 
-        <section className="mt-8 rounded-[2rem] border bg-white/80 shadow-sm">
+        <section className="mt-8 app-card overflow-hidden">
           <div className="border-b p-6">
             <h2 className="text-lg font-semibold">Recent usage</h2>
           </div>
@@ -81,7 +81,7 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
                   </div>
                   <div className="flex gap-2 text-xs">
                     <span className="rounded-full bg-zinc-100 px-3 py-1">{log.status}</span>
-                    <span className="rounded-full bg-[#06C755] px-3 py-1 text-white">{log.source}</span>
+                    <span className="rounded-full bg-blue-600 px-3 py-1 text-white">{log.source}</span>
                   </div>
                 </div>
                 <p className="mt-3 text-sm text-zinc-700">{log.user_message}</p>
@@ -90,7 +90,7 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
                 </p>
               </article>
             ))}
-            {!logs.length && <div className="p-10 text-center text-sm text-zinc-500">No usage logs yet.</div>}
+            {!logs.length && <div className="app-empty-state m-5 min-h-48"><h3 className="text-base font-semibold text-slate-900 dark:text-white">No usage yet</h3><p className="mt-2 text-sm text-slate-500">Customer messages and credit activity will appear here.</p></div>}
           </div>
         </section>
       </main>
@@ -100,7 +100,7 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+    <div className="app-card p-6">
       <p className="text-xs uppercase tracking-[0.18em] text-zinc-400">{label}</p>
       <p className="mt-2 text-3xl font-semibold">{value}</p>
     </div>

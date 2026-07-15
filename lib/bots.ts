@@ -100,7 +100,7 @@ export async function createBotWithFaqs(input: {
       ]
     );
     const botId = (result as { insertId?: number }).insertId;
-    if (!botId) throw new Error("Failed to create bot");
+    if (!botId) throw new Error("Failed to create agent");
 
     for (const faq of input.faqs) {
       await connection.execute(

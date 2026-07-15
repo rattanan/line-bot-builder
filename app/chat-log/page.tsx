@@ -88,7 +88,7 @@ export default function ChatLogPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <section className="rounded-[2rem] border border-black/5 bg-white/80 p-6 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm sm:p-8">

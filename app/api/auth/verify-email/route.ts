@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { consumeToken, updateUser } from "@/lib/users";
+import { getAppUrl } from "@/lib/app-url";
 
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
-  if (!token) return NextResponse.redirect(new URL("/login?verified=0", req.url));
+  if (!token) return NextResponse.redirect(getAppUrl(req, "/login?verified=0"));
 
   const userId = await consumeToken("email_verify", token);
-  if (!userId) return NextResponse.redirect(new URL("/login?verified=0", req.url));
+  if (!userId) return NextResponse.redirect(getAppUrl(req, "/login?verified=0"));
 
   await updateUser(userId, { emailVerifiedAt: new Date().toISOString() });
-  return NextResponse.redirect(new URL("/login?verified=1", req.url));
+  return NextResponse.redirect(getAppUrl(req, "/login?verified=1"));
 }

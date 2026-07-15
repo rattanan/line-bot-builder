@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import Header from "../components/Header";
+import GoogleIcon from "../components/GoogleIcon";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ fullName: "", email: "", password: "" });
@@ -32,27 +33,28 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
       <main className="mx-auto flex min-h-[calc(100vh-73px)] max-w-6xl items-center px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto grid w-full max-w-4xl gap-8 lg:grid-cols-2">
-          <section className="rounded-[2rem] border border-black/5 bg-white/80 p-8 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
+          <section className="app-card p-8">
             <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">Create your account</span>
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Start building your bot</h1>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Start building your agent</h1>
             <p className="mt-3 text-sm leading-6 text-zinc-600">
-              สมัครสมาชิกเพื่อสร้างบอท จัดการ FAQ และตั้งค่า LINE webhook ของคุณเอง
+              สมัครสมาชิกเพื่อสร้างเอเจนต์ จัดการ FAQ และตั้งค่า LINE webhook ของคุณเอง
             </p>
             <div className="mt-6 flex gap-3">
-              <Link href="/login" className="rounded-full border border-zinc-200 px-4 py-2 text-sm">
+              <Link href="/login" className="app-button-outline">
                 Back to login
               </Link>
-              <Link href="/api/auth/google/start" className="rounded-full border border-zinc-200 px-4 py-2 text-sm">
+              <Link href="/api/auth/google/start" className="app-button-outline">
+                <GoogleIcon />
                 Continue with Google
               </Link>
             </div>
           </section>
 
-          <section className="rounded-[2rem] border border-black/5 bg-white/80 p-8 shadow-[0_10px_40px_rgba(24,24,27,0.06)] backdrop-blur-sm">
+          <section className="app-card p-8">
             <form onSubmit={submit} className="grid gap-4">
               <label className="grid gap-2">
                 <span className="text-sm font-medium text-zinc-700">Full name</span>
@@ -95,7 +97,8 @@ export default function RegisterPage() {
               )}
               <button
                 disabled={isLoading}
-                className="rounded-full bg-[#06C755] px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+                aria-busy={isLoading}
+                className="app-button-primary w-full disabled:opacity-50"
               >
                 {isLoading ? "Creating account..." : "Create account"}
               </button>

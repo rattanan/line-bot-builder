@@ -3,6 +3,7 @@
 import Header from "@/app/components/Header";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/app/components/LanguageProvider";
 
 type Bot = {
   id: number;
@@ -16,6 +17,7 @@ type Bot = {
 };
 
 export default function BotSettingsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { language, text } = useLanguage();
   const [botId, setBotId] = useState<number | null>(null);
   const [bot, setBot] = useState<Bot | null>(null);
   const [lineChannelSecret, setLineChannelSecret] = useState("");
@@ -51,13 +53,13 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   const appOrigin = typeof window !== "undefined" ? window.location.origin : "";
   const embedCode =
     botId && bot
-      ? `<script src="${appOrigin}/embed/chat-widget.js" data-tenant-id="${botId}" data-bot-name="${escapeAttr(bot.bot_name)}" data-theme-color="#06C755" data-greeting-message="สวัสดีครับ มีอะไรให้ช่วยไหมครับ" data-logo-url=""></script>`
+      ? `<script src="${appOrigin}/embed/chat-widget.js" data-tenant-id="${botId}" data-bot-name="${escapeAttr(bot.bot_name)}" data-theme-color="#2563EB" data-greeting-message="${language === "th" ? "สวัสดีครับ มีอะไรให้ช่วยไหมครับ" : "Hello! How can I help you today?"}" data-logo-url=""></script>`
       : "";
 
   const copyEmbedCode = async () => {
     if (!embedCode) return;
     await navigator.clipboard.writeText(embedCode);
-    setCopyResult("คัดลอก embed code แล้ว");
+    setCopyResult("copied");
   };
 
   const saveConnection = async () => {
@@ -78,7 +80,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
       if (!res.ok) throw new Error(data.error || "Save failed");
       setBot(data.bot);
       setCanTest(Boolean(data.bot?.line_channel_secret && data.bot?.line_channel_access_token));
-      setSaveResult("บันทึกข้อมูลสำเร็จแล้ว");
+      setSaveResult("saved");
     } catch (error) {
       setSaveResult(error instanceof Error ? error.message : "Save failed");
     } finally {
@@ -89,7 +91,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   const testConnection = async () => {
     if (!botId) return;
     if (!canTest) {
-      setTestResult("กรุณากด Save ให้เรียบร้อยก่อน");
+      setTestResult("save_first");
       return;
     }
     setIsTesting(true);
@@ -97,7 +99,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
     try {
       const res = await fetch(`/api/dashboard/bots/${botId}/line-connection-test`, { method: "POST" });
       const data = await res.json();
-      setTestResult(data.ok ? "เชื่อมต่อสำเร็จ" : data.message || "ทดสอบไม่สำเร็จ");
+      setTestResult(data.ok ? "connected" : data.message || text("Connection test failed", "ทดสอบการเชื่อมต่อไม่สำเร็จ"));
     } finally {
       setIsTesting(false);
     }
@@ -120,68 +122,68 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
-      <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-6 flex items-center justify-between">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-10">
+        <div className="app-page-header mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">LINE Setup</h1>
-            <p className="text-sm text-zinc-600">คู่มือการตั้งค่า LINE Developers สำหรับบอทตัวนี้</p>
+            <p className="text-sm text-zinc-600">{text("Configure LINE Developers and the website widget for this agent.", "คู่มือการตั้งค่า LINE Developers และวิดเจ็ตเว็บไซต์สำหรับเอเจนต์ตัวนี้")}</p>
           </div>
           <div className="flex gap-2">
-            <Link href="/dashboard/bots" className="rounded-full border px-4 py-2 text-sm">Back</Link>
+            <Link href="/dashboard/bots" className="app-button-outline">{text("Back", "กลับ")}</Link>
             <button
               type="button"
               onClick={() => setDeleteConfirmOpen(true)}
-              className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700"
+              className="app-button-danger"
             >
-              Delete bot
+              {text("Delete agent", "ลบเอเจนต์")}
             </button>
           </div>
         </div>
 
         <section className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
-          <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">วิธีตั้งค่า LINE Developers</h2>
+          <div className="app-card p-6">
+            <h2 className="text-lg font-semibold">{text("LINE Developers setup guide", "วิธีตั้งค่า LINE Developers")}</h2>
             <div className="mt-4 space-y-4 text-sm leading-7 text-zinc-700">
-              <Link href={`/dashboard/bots/${botId || ""}/knowledge`} className="inline-flex rounded-full border px-4 py-2 text-sm">
-                Review Knowledge
+              <Link href={`/dashboard/bots/${botId || ""}/knowledge`} className="app-button-outline">
+                {text("Review Knowledge", "ตรวจสอบคลังความรู้")}
               </Link>
-              <Step title="1) สร้าง LINE Messaging API Channel">
-                เข้า LINE Developers Console แล้วสร้าง Provider ใหม่ จากนั้นสร้าง Channel ประเภท Messaging API
-                <ExternalDocLink href="https://developers.line.biz/console/" label="เปิด LINE Developers Console" />
-                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/getting-started/" label="ดูคู่มือเริ่มต้น Messaging API" />
+              <Step title={text("1) Create a LINE Messaging API channel", "1) สร้าง LINE Messaging API Channel")}>
+                {text("Open LINE Developers Console, create a provider, then create a Messaging API channel.", "เข้า LINE Developers Console แล้วสร้าง Provider ใหม่ จากนั้นสร้าง Channel ประเภท Messaging API")}
+                <ExternalDocLink href="https://developers.line.biz/console/" label={text("Open LINE Developers Console", "เปิด LINE Developers Console")} />
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/getting-started/" label={text("Messaging API getting started guide", "ดูคู่มือเริ่มต้น Messaging API")} />
               </Step>
-              <Step title="2) หา Channel Secret">
-                หลังสร้าง channel แล้ว ให้เปิดหน้า Basic settings จะเห็น Channel Secret ให้นำค่านี้มาใส่ในช่อง Channel Secret ของบอท
-                <ExternalDocLink href="https://developers.line.biz/console/" label="ไปที่หน้า Channel ใน LINE Developers Console" />
-                <ExternalDocLink href="https://developers.line.biz/en/docs/basics/channel-secret/" label="อ่านรายละเอียด Channel Secret" />
+              <Step title={text("2) Find the Channel Secret", "2) หา Channel Secret")}>
+                {text("Open the channel's Basic settings, copy the Channel Secret, and paste it into this agent's Channel Secret field.", "หลังสร้าง channel แล้ว ให้เปิดหน้า Basic settings จะเห็น Channel Secret ให้นำค่านี้มาใส่ในช่อง Channel Secret ของเอเจนต์")}
+                <ExternalDocLink href="https://developers.line.biz/console/" label={text("Open the channel in LINE Developers Console", "ไปที่หน้า Channel ใน LINE Developers Console")} />
+                <ExternalDocLink href="https://developers.line.biz/en/docs/basics/channel-secret/" label={text("Read about Channel Secret", "อ่านรายละเอียด Channel Secret")} />
               </Step>
-              <Step title="3) สร้าง Channel Access Token">
-                เข้า Messaging API settings แล้วกดออก token แบบ long-lived access token จากนั้นคัดลอกมาใส่ในช่อง Channel Access Token
-                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/channel-access-tokens/" label="อ่านวิธีสร้าง Channel Access Token" />
+              <Step title={text("3) Create a Channel Access Token", "3) สร้าง Channel Access Token")}>
+                {text("Open Messaging API settings, issue a long-lived access token, then paste it into the Channel Access Token field.", "เข้า Messaging API settings แล้วกดออก token แบบ long-lived access token จากนั้นคัดลอกมาใส่ในช่อง Channel Access Token")}
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/channel-access-tokens/" label={text("Channel Access Token guide", "อ่านวิธีสร้าง Channel Access Token")} />
               </Step>
-              <Step title="4) ตั้งค่า Webhook URL">
-                ใช้ URL นี้เป็น Webhook ของบอทตัวนี้
-                <div className="mt-2 rounded-2xl border bg-zinc-50 px-4 py-3 font-mono text-xs break-all">{webhookUrl || "โหลดหน้าเพื่อแสดง webhook URL"}</div>
-                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/" label="อ่านคู่มือการรับข้อความผ่าน Webhook" />
+              <Step title={text("4) Set the Webhook URL", "4) ตั้งค่า Webhook URL")}>
+                {text("Use this URL as the webhook for this agent.", "ใช้ URL นี้เป็น Webhook ของเอเจนต์ตัวนี้")}
+                <div className="mt-2 rounded-2xl border bg-zinc-50 px-4 py-3 font-mono text-xs break-all">{webhookUrl || text("Save the connection to display the webhook URL", "บันทึกการเชื่อมต่อเพื่อแสดง Webhook URL")}</div>
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/" label={text("Receiving messages with webhooks", "อ่านคู่มือการรับข้อความผ่าน Webhook")} />
               </Step>
-              <Step title="5) เปิด Use webhook">
-                กลับไปที่ Messaging API settings แล้วเปิดสวิตช์ Use webhook ให้เป็นเปิด เพื่อให้ข้อความจาก LINE ส่งมาที่ระบบนี้
-                <ExternalDocLink href="https://developers.line.biz/console/" label="เปิดหน้า Messaging API settings" />
-                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/" label="ดูวิธีเปิดและใช้งาน Webhook" />
+              <Step title={text("5) Enable Use webhook", "5) เปิด Use webhook")}>
+                {text("Return to Messaging API settings and enable Use webhook so LINE can send messages to this application.", "กลับไปที่ Messaging API settings แล้วเปิดสวิตช์ Use webhook ให้เป็นเปิด เพื่อให้ข้อความจาก LINE ส่งมาที่ระบบนี้")}
+                <ExternalDocLink href="https://developers.line.biz/console/" label={text("Open Messaging API settings", "เปิดหน้า Messaging API settings")} />
+                <ExternalDocLink href="https://developers.line.biz/en/docs/messaging-api/receiving-messages/" label={text("Webhook setup guide", "ดูวิธีเปิดและใช้งาน Webhook")} />
               </Step>
-              <Step title="6) ทดสอบการเชื่อมต่อ">
-                เมื่อกรอก Channel Secret และ Access Token แล้ว ให้กดปุ่ม Test Connection ด้านล่าง เพื่อตรวจว่าระบบเชื่อมกับ LINE ได้จริง
-                <ExternalDocLink href="https://developers.line.biz/en/reference/messaging-api/" label="ดู Messaging API Reference" />
+              <Step title={text("6) Test the connection", "6) ทดสอบการเชื่อมต่อ")}>
+                {text("After saving the Channel Secret and Access Token, select Test Connection to verify that LINE can connect.", "เมื่อบันทึก Channel Secret และ Access Token แล้ว ให้กดปุ่ม Test Connection ด้านล่าง เพื่อตรวจว่าระบบเชื่อมกับ LINE ได้จริง")}
+                <ExternalDocLink href="https://developers.line.biz/en/reference/messaging-api/" label={text("Messaging API reference", "ดู Messaging API Reference")} />
               </Step>
             </div>
           </div>
 
-          <div className="rounded-[2rem] border bg-white/80 p-6 shadow-sm">
-            <h2 className="text-lg font-semibold">วิธีตั้งค่า</h2>
+          <div className="app-card p-6">
+            <h2 className="text-lg font-semibold">{text("Connection settings", "ตั้งค่าการเชื่อมต่อ")}</h2>
             <div className="mt-4 space-y-3 text-sm text-zinc-700">
-              <p>Bot name: {bot?.bot_name || "-"}</p>
+              <p>Agent name: {bot?.bot_name || "-"}</p>
               <p>Business: {bot?.business_name || "-"}</p>
               <p>Status: {bot?.status || "-"}</p>
             </div>
@@ -196,7 +198,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
                     setCanTest(false);
                   }}
                   className="rounded-2xl border border-zinc-200 bg-white px-4 py-3 outline-none"
-                  placeholder="ใส่ Channel Secret"
+                  placeholder={text("Enter Channel Secret", "ใส่ Channel Secret")}
                 />
               </label>
               <label className="grid gap-2 text-sm">
@@ -208,75 +210,78 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
                     setCanTest(false);
                   }}
                   className="min-h-[110px] rounded-2xl border border-zinc-200 bg-white px-4 py-3 outline-none"
-                  placeholder="ใส่ Channel Access Token"
+                  placeholder={text("Enter Channel Access Token", "ใส่ Channel Access Token")}
                 />
               </label>
               <button
                 onClick={saveConnection}
                 disabled={isSaving}
-                className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40"
+                aria-busy={isSaving}
+                className="app-button-primary disabled:opacity-40"
               >
                 {isSaving ? "Saving..." : "Save"}
               </button>
-              {saveResult && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{saveResult}</div>}
+              {saveResult && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{saveResult === "saved" ? text("Connection saved successfully.", "บันทึกข้อมูลสำเร็จแล้ว") : saveResult}</div>}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs break-all">
-                {webhookUrl || "กด Save ก่อนเพื่อแสดง Webhook URL"}
+                {webhookUrl || text("Select Save to display the Webhook URL", "กด Save เพื่อแสดง Webhook URL")}
               </div>
               <button
                 onClick={testConnection}
                 disabled={isTesting || !canTest}
-                className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40"
+                aria-busy={isTesting}
+                className="app-button-primary disabled:opacity-40"
               >
                 {isTesting ? "Testing..." : "Test Connection"}
               </button>
-              {testResult && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{testResult}</div>}
+              {testResult && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{testResult === "connected" ? text("Connected successfully.", "เชื่อมต่อสำเร็จ") : testResult === "save_first" ? text("Save the connection before testing.", "กรุณากด Save ให้เรียบร้อยก่อน") : testResult}</div>}
             </div>
           </div>
         </section>
 
-        <section className="mt-6 rounded-[2rem] border bg-white/80 p-6 shadow-sm">
+        <section className="mt-6 app-card p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
               <h2 className="text-lg font-semibold">Website Chat Widget</h2>
               <p className="mt-2 text-sm leading-6 text-zinc-600">
-                นำโค้ดนี้ไปวางก่อนปิดแท็ก body ของเว็บไซต์ลูกค้า เพื่อแสดงปุ่มแชทมุมขวาล่าง
+                {text("Place this code before the closing body tag on your website to show the chat button in the bottom-right corner.", "นำโค้ดนี้ไปวางก่อนปิดแท็ก body ของเว็บไซต์ลูกค้า เพื่อแสดงปุ่มแชทมุมขวาล่าง")}
               </p>
             </div>
             <button
               type="button"
               onClick={copyEmbedCode}
               disabled={!embedCode}
-              className="rounded-full bg-[#06C755] px-5 py-3 text-sm text-white disabled:opacity-40"
+              className="app-button-primary disabled:opacity-40"
             >
               Copy Embed Code
             </button>
           </div>
           <pre className="mt-4 overflow-auto rounded-2xl border bg-zinc-950 p-4 text-xs leading-6 text-zinc-100">
-            {embedCode || "กำลังโหลด embed code..."}
+            {embedCode || text("Loading embed code...", "กำลังโหลด embed code...")}
           </pre>
-          {copyResult && <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{copyResult}</div>}
+          {copyResult && <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{text("Embed code copied.", "คัดลอก embed code แล้ว")}</div>}
         </section>
       </main>
 
       {deleteConfirmOpen && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4">
-          <div className="w-full max-w-lg rounded-[2rem] bg-white p-6 shadow-2xl">
-            <h3 className="text-xl font-semibold text-zinc-950">ลบบอทนี้ใช่ไหม</h3>
+        <div className="fixed inset-0 z-[80] grid place-items-center bg-slate-950/45 px-4 backdrop-blur-sm">
+          <div role="dialog" aria-modal="true" aria-labelledby="delete-agent-title" className="app-card w-full max-w-lg p-6 shadow-2xl">
+            <h3 id="delete-agent-title" className="text-xl font-semibold text-zinc-950 dark:text-white">{text("Delete this agent?", "ลบเอเจนต์นี้ใช่ไหม")}</h3>
             <p className="mt-3 text-sm leading-6 text-zinc-600">
-              การลบบอทจะลบข้อมูล FAQ, chat log และประวัติการใช้งานของบอทตัวนี้อย่างถาวร และไม่สามารถกู้คืนได้
+              {text("Deleting this agent permanently removes its FAQs, conversation logs, and usage history. This action cannot be undone.", "การลบเอเจนต์จะลบข้อมูล FAQ, บันทึกการสนทนา และประวัติการใช้งานของเอเจนต์ตัวนี้อย่างถาวร และไม่สามารถกู้คืนได้")}
             </p>
             {deleteError && <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{deleteError}</div>}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button type="button" onClick={() => setDeleteConfirmOpen(false)} className="rounded-full border px-5 py-3 text-sm">
-                Cancel
+              <button type="button" onClick={() => setDeleteConfirmOpen(false)} className="app-button-outline">
+                {text("Cancel", "ยกเลิก")}
               </button>
               <button
                 type="button"
                 onClick={deleteCurrentBot}
                 disabled={isDeleting}
-                className="rounded-full bg-red-600 px-5 py-3 text-sm text-white disabled:opacity-40"
+                aria-busy={isDeleting}
+                className="app-button-danger bg-red-600 text-white disabled:opacity-40"
               >
-                {isDeleting ? "Deleting..." : "Delete bot"}
+                {isDeleting ? text("Deleting...", "กำลังลบ...") : text("Delete agent", "ลบเอเจนต์")}
               </button>
             </div>
           </div>

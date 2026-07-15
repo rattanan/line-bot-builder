@@ -2,6 +2,7 @@
 
 import { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Header from "@/app/components/Header";
 
 type Order = {
   id: number;
@@ -48,6 +49,7 @@ export default function TopupOrderPage({ params }: { params: Promise<{ id: strin
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, [orderId]);
 
@@ -57,9 +59,11 @@ export default function TopupOrderPage({ params }: { params: Promise<{ id: strin
   }, [order?.qr_payload]);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(236,253,245,0.9),white_38%,#f8fafc_100%)] px-4 py-10">
+    <>
+      <Header />
+      <main className="min-h-screen bg-transparent px-4 py-10">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-8 rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-[#06C755] to-emerald-700 p-8 text-white shadow-lg">
+        <div className="mb-8 rounded-[2rem] border border-blue-200 bg-gradient-to-br from-blue-600 to-violet-600 p-8 text-white shadow-lg shadow-blue-600/15">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-emerald-100">PromptPay top-up</p>
@@ -104,7 +108,7 @@ export default function TopupOrderPage({ params }: { params: Promise<{ id: strin
                   <a
                     href={qrUrl}
                     download={`topup-order-${order.id}.png`}
-                    className="rounded-full bg-[#06C755] px-4 py-2 text-sm font-medium text-white"
+                    className="rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white"
                   >
                     ดาวน์โหลด
                   </a>
@@ -129,7 +133,7 @@ export default function TopupOrderPage({ params }: { params: Promise<{ id: strin
                     ].map((text, index) => (
                       <div key={text} className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                         <div className="flex gap-3">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#06C755] text-sm font-semibold text-white">{index + 1}</span>
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-semibold text-white">{index + 1}</span>
                           <p className="text-sm leading-6 text-zinc-700">{text}</p>
                         </div>
                       </div>
@@ -167,7 +171,7 @@ export default function TopupOrderPage({ params }: { params: Promise<{ id: strin
                   />
                   <button
                     disabled={submitting}
-                    className="mt-4 rounded-full bg-[#06C755] px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
+                    className="mt-4 rounded-full bg-blue-600 px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
                   >
                     {submitting ? "กำลังอัปโหลด..." : "อัปโหลดสลิป"}
                   </button>
@@ -188,6 +192,7 @@ export default function TopupOrderPage({ params }: { params: Promise<{ id: strin
           <div className="rounded-3xl border border-emerald-200 bg-white p-6 text-zinc-600 shadow-sm">กำลังโหลดข้อมูล order...</div>
         )}
       </div>
-    </main>
+      </main>
+    </>
   );
 }

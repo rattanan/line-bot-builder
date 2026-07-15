@@ -1,26 +1,441 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primitive tokens */
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --violet-600: #7c3aed;
+  --slate-50: #f8fafc;
+  --slate-100: #f1f5f9;
+  --slate-200: #e2e8f0;
+  --slate-500: #64748b;
+  --slate-900: #0f172a;
+  --green-600: #16a34a;
+  --orange-500: #f97316;
+  --red-600: #dc2626;
+
+  /* Semantic tokens */
+  --background: #f7f9fd;
+  --foreground: var(--slate-900);
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-solid: #ffffff;
+  --surface-muted: var(--slate-50);
+  --muted-foreground: var(--slate-500);
+  --border: rgba(148, 163, 184, 0.24);
+  --primary: var(--blue-600);
+  --primary-hover: var(--blue-700);
+  --accent: var(--violet-600);
+  --success: var(--green-600);
+  --warning: var(--orange-500);
+  --error: var(--red-600);
+  --focus-ring: rgba(59, 130, 246, 0.36);
+
+  /* Component tokens */
+  --card-radius: 1.5rem;
+  --control-radius: 0.875rem;
+  --card-shadow: 0 12px 40px rgba(15, 23, 42, 0.055);
+  --card-shadow-hover: 0 20px 55px rgba(37, 99, 235, 0.1);
+  --app-sidebar-width: 17.5rem;
+  --app-sidebar-collapsed-width: 5.25rem;
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand: var(--primary);
+  --color-accent-brand: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
+  min-width: 320px;
+  background:
+    radial-gradient(circle at 78% -10%, rgba(59, 130, 246, 0.09), transparent 30rem),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+
+a,
+button,
+input,
+textarea,
+select,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+button,
+a {
+  transition-duration: var(--duration-fast);
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Authenticated application shell */
+body:has(.app-sidebar) > .flex-1 {
+  padding-left: var(--app-sidebar-width);
+  transition: padding-left var(--duration-normal) ease;
+}
+
+body:has(.app-sidebar.is-collapsed) > .flex-1 {
+  padding-left: var(--app-sidebar-collapsed-width);
+}
+
+body:has(.app-sidebar) > footer {
+  padding-left: var(--app-sidebar-width);
+  transition: padding-left var(--duration-normal) ease;
+}
+
+body:has(.app-sidebar.is-collapsed) > footer {
+  padding-left: var(--app-sidebar-collapsed-width);
+}
+
+body:has(.app-sidebar) > .flex-1 > div {
+  background: transparent !important;
+  color: var(--foreground);
+}
+
+body:has(.app-sidebar) main {
+  width: 100%;
+  min-height: calc(100vh - 4.5rem);
+}
+
+body:has(.app-sidebar) main > :first-child:is(section, div) {
+  scroll-margin-top: 6rem;
+}
+
+/* Consistent application controls */
+body:has(.app-sidebar) main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+body:has(.app-sidebar) main textarea,
+body:has(.app-sidebar) main select,
+body:has(.app-auth-header) main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+body:has(.app-auth-header) main textarea,
+body:has(.app-auth-header) main select {
+  border-color: var(--border);
+  border-radius: var(--control-radius);
+  background: var(--surface-solid);
+  color: var(--foreground);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.02);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast), background var(--duration-fast);
+}
+
+body:has(.app-sidebar) main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+body:has(.app-sidebar) main textarea:focus,
+body:has(.app-sidebar) main select:focus,
+body:has(.app-auth-header) main input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+body:has(.app-auth-header) main textarea:focus,
+body:has(.app-auth-header) main select:focus {
+  border-color: var(--blue-500);
+  box-shadow: 0 0 0 4px var(--focus-ring);
+  outline: none;
+}
+
+body:has(.app-sidebar) main input::placeholder,
+body:has(.app-sidebar) main textarea::placeholder,
+body:has(.app-auth-header) main input::placeholder,
+body:has(.app-auth-header) main textarea::placeholder {
+  color: #94a3b8;
+}
+
+body:has(.app-sidebar) main input[type="checkbox"],
+body:has(.app-sidebar) main input[type="radio"] {
+  accent-color: var(--primary);
+}
+
+body:has(.app-sidebar) main table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+body:has(.app-sidebar) main thead {
+  position: sticky;
+  top: 4.5rem;
+  z-index: 5;
+  background: rgba(248, 250, 252, 0.94);
+  backdrop-filter: blur(12px);
+}
+
+/* Tables inside horizontal-only scrollers should not pin their header to the viewport. */
+body:has(.app-sidebar) main .app-table-static-header thead {
+  position: static;
+  top: auto;
+  z-index: auto;
+  backdrop-filter: none;
+}
+
+body:has(.app-sidebar) main th {
+  color: var(--muted-foreground);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body:has(.app-sidebar) main tbody tr {
+  transition: background-color var(--duration-fast);
+}
+
+body:has(.app-sidebar) main tbody tr:hover {
+  background: rgba(239, 246, 255, 0.65);
+}
+
+body:has(.app-sidebar) main details {
+  border-color: var(--border);
+  transition: background-color var(--duration-fast), border-color var(--duration-fast);
+}
+
+body:has(.app-sidebar) main details[open] {
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+/* Reusable UI primitives */
+.app-page-header {
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.app-card {
+  border: 1px solid var(--border);
+  border-radius: var(--card-radius);
+  background: var(--surface);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(16px);
+}
+
+.app-card-interactive {
+  transition: transform var(--duration-normal), border-color var(--duration-normal), box-shadow var(--duration-normal);
+}
+
+.app-card-interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: var(--card-shadow-hover);
+}
+
+.app-button-primary,
+.app-button-secondary,
+.app-button-outline,
+.app-button-danger {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.app-button-primary {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: white;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+}
+
+.app-button-primary:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.app-button-secondary {
+  border: 1px solid rgba(124, 58, 237, 0.18);
+  background: rgba(124, 58, 237, 0.08);
+  color: #6d28d9;
+}
+
+.app-button-outline {
+  border: 1px solid var(--border);
+  background: var(--surface-solid);
+  color: var(--foreground);
+}
+
+.app-button-outline:hover {
+  border-color: rgba(59, 130, 246, 0.35);
+  background: var(--blue-50);
+  color: var(--blue-700);
+}
+
+.app-button-danger {
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  background: rgba(254, 226, 226, 0.65);
+  color: #b91c1c;
+}
+
+.app-empty-state {
+  display: flex;
+  min-height: 15rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border-radius: var(--card-radius);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 2.5rem;
+  text-align: center;
+}
+
+.app-skeleton {
+  overflow: hidden;
+  background: var(--slate-100);
+  position: relative;
+}
+
+.app-skeleton::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+  animation: app-shimmer 1.5s infinite;
+}
+
+@keyframes app-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (max-width: 1023px) {
+  body:has(.app-sidebar) > .flex-1,
+  body:has(.app-sidebar.is-collapsed) > .flex-1,
+  body:has(.app-sidebar) > footer,
+  body:has(.app-sidebar.is-collapsed) > footer {
+    padding-left: 0;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #070b14;
+    --foreground: #f8fafc;
+    --surface: rgba(15, 23, 42, 0.82);
+    --surface-solid: #0f172a;
+    --surface-muted: #111c31;
+    --muted-foreground: #94a3b8;
+    --border: rgba(148, 163, 184, 0.16);
+    --focus-ring: rgba(96, 165, 250, 0.26);
+    --card-shadow: 0 16px 45px rgba(0, 0, 0, 0.2);
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 78% -10%, rgba(59, 130, 246, 0.12), transparent 30rem),
+      var(--background);
+  }
+
+  body:has(.app-sidebar) main .bg-white,
+  body:has(.app-sidebar) main .bg-white\/80,
+  body:has(.app-sidebar) main .bg-white\/90,
+  body:has(.app-sidebar) main .bg-zinc-50,
+  body:has(.app-sidebar) main .bg-slate-50 {
+    background-color: var(--surface) !important;
+  }
+
+  body:has(.app-sidebar) main .text-zinc-950,
+  body:has(.app-sidebar) main .text-zinc-900,
+  body:has(.app-sidebar) main .text-slate-950,
+  body:has(.app-sidebar) main .text-slate-900 {
+    color: var(--foreground) !important;
+  }
+
+  body:has(.app-sidebar) main .text-zinc-600,
+  body:has(.app-sidebar) main .text-zinc-500,
+  body:has(.app-sidebar) main .text-slate-600,
+  body:has(.app-sidebar) main .text-slate-500 {
+    color: var(--muted-foreground) !important;
+  }
+
+  body:has(.app-auth-header) main .text-zinc-700,
+  body:has(.app-auth-header) main .text-zinc-600,
+  body:has(.app-auth-header) main .text-zinc-500,
+  body:has(.app-auth-header) main .text-slate-700,
+  body:has(.app-auth-header) main .text-slate-600,
+  body:has(.app-auth-header) main .text-slate-500 {
+    color: var(--muted-foreground) !important;
+  }
+
+  body:has(.app-auth-header) main .text-zinc-950,
+  body:has(.app-auth-header) main .text-zinc-900,
+  body:has(.app-auth-header) main .text-slate-950,
+  body:has(.app-auth-header) main .text-slate-900 {
+    color: var(--foreground) !important;
+  }
+
+  body:has(.app-sidebar) main thead {
+    background: rgba(15, 23, 42, 0.94);
+  }
+
+  body:has(.app-sidebar) main tbody tr:hover {
+    background: rgba(59, 130, 246, 0.08);
+  }
+
+  .app-button-secondary {
+    color: #c4b5fd;
+  }
+
+  .app-button-outline {
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .app-button-outline:hover {
+    background: rgba(59, 130, 246, 0.1);
+    color: #bfdbfe;
+  }
+
+  .app-empty-state {
+    background: rgba(15, 23, 42, 0.55);
+  }
+
+  .app-skeleton {
+    background: #172033;
+  }
+
+  .app-skeleton::after {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

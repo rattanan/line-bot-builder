@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findUserByEmail, createVerificationToken } from "@/lib/users";
 import { sendMail } from "@/lib/email";
+import { getAppUrl } from "@/lib/app-url";
 
 export async function POST(req: NextRequest) {
   const { email } = await req.json();
@@ -18,9 +19,8 @@ export async function POST(req: NextRequest) {
   }
 
   const token = await createVerificationToken(user.id);
-  const verifyUrl = new URL("/api/auth/verify-email", req.url);
+  const verifyUrl = getAppUrl(req, "/api/auth/verify-email");
   verifyUrl.searchParams.set("token", token);
-  console.log(`[auth:resend-verification] verification link for ${user.email}: ${verifyUrl.toString()}`);
 
   await sendMail({
     to: user.email,

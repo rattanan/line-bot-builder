@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Header from "@/app/components/Header";
 
 type Review = {
   id: number;
@@ -28,6 +29,7 @@ export default function TopupReviewsPage() {
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh();
   }, []);
 
@@ -41,7 +43,9 @@ export default function TopupReviewsPage() {
   }
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10">
+    <>
+      <Header />
+      <main className="mx-auto max-w-6xl px-4 py-10">
       <div className="rounded-[2rem] border bg-white p-8 shadow-sm">
         <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Admin portal</p>
         <h1 className="mt-3 text-3xl font-semibold">Top-up Review</h1>
@@ -95,6 +99,7 @@ export default function TopupReviewsPage() {
           </div>
         ))}
       </div>
-    </main>
+      </main>
+    </>
   );
 }

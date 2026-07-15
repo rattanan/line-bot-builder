@@ -37,7 +37,7 @@ export async function DELETE(_req: NextRequest, context: RouteContext<"/api/dash
     await deleteBot(botId);
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error("Delete bot failed:", error);
+    console.error("Delete agent failed:", error);
     return NextResponse.json({ error: "Delete failed" }, { status: 500 });
   }
 }

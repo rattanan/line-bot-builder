@@ -29,12 +29,12 @@ export async function POST(req: NextRequest, context: RouteContext<"/api/line/we
   try {
     const botId = Number((await context.params).botId);
     if (!Number.isFinite(botId)) {
-      return NextResponse.json({ success: false, error: "Invalid botId" }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Invalid agent ID" }, { status: 400 });
     }
 
     const bot = await getBotById(botId);
     if (!bot) {
-      return NextResponse.json({ success: false, error: "Bot not found" }, { status: 404 });
+      return NextResponse.json({ success: false, error: "Agent not found" }, { status: 404 });
     }
 
     const signature = req.headers.get("x-line-signature");
@@ -59,8 +59,11 @@ export async function POST(req: NextRequest, context: RouteContext<"/api/line/we
         if (event.message?.type !== "text" || !event.message.text) return;
 
         const question = event.message.text;
-        const userId = event.source?.userId;
-        const { reply, source } = await generateBotAnswer(botId, question, { userId });
+        const userId = event.source?.userId || "line:unknown";
+        const { reply, source } = await generateBotAnswer(botId, question, {
+          userId,
+          channel: "line",
+        });
 
         console.log(`[LINE Webhook][bot:${botId}] Question: "${question}" -> Source: ${source}`);
         await replyMessage(bot.line_channel_access_token || "", event.replyToken, toLineText(reply));

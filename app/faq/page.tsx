@@ -91,7 +91,7 @@ export default function FAQPage() {
   const pagedFaqs = filteredFaqs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <section className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
@@ -99,7 +99,7 @@ export default function FAQPage() {
             <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">FAQ manager</span>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">Build the knowledge base</h1>
             <p className="mt-3 text-sm leading-6 text-zinc-600">
-              เพิ่มคำถามและคำตอบที่ต้องการให้บอทใช้ตอบก่อนเข้า AI ช่วยให้ฐานความรู้ดูเป็นระบบและอ่านง่ายขึ้น
+              เพิ่มคำถามและคำตอบที่ต้องการให้เอเจนต์ใช้ตอบก่อนเข้า AI ช่วยให้ฐานความรู้ดูเป็นระบบและอ่านง่ายขึ้น
             </p>
 
             <form onSubmit={handleAdd} className="mt-8 grid gap-4">

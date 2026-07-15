@@ -113,6 +113,48 @@ export async function addFAQ(
   }
 }
 
+export async function addDraftFAQ(input: {
+  botId: number;
+  question: string;
+  answer: string;
+  category: string;
+}): Promise<FAQ | null> {
+  try {
+    const sourceMeta = JSON.stringify({
+      source: "business_insight",
+      category: input.category,
+    });
+    const result = await executeQuery(
+      `INSERT INTO faq (
+        bot_id, question, answer, is_active, source_type, source_meta,
+        language_code, faq_status, confidence_score
+      ) VALUES (?, ?, ?, 0, 'manual', ?, 'th', 'draft', 1.0000)`,
+      [input.botId, input.question, input.answer, sourceMeta]
+    );
+    return result.insertId ? getFAQById(result.insertId) : null;
+  } catch (error) {
+    console.error("Error adding draft FAQ:", error);
+    return null;
+  }
+}
+
+export async function updateFAQStatus(
+  id: number,
+  status: "draft" | "active" | "archived"
+): Promise<FAQ | null> {
+  try {
+    const isActive = status === "active" ? 1 : 0;
+    await executeQuery(
+      "UPDATE faq SET faq_status = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [status, isActive, id]
+    );
+    return getFAQById(id);
+  } catch (error) {
+    console.error(`Error updating FAQ status for id ${id}:`, error);
+    return null;
+  }
+}
+
 /**
  * Update an existing FAQ entry
  * @param id - FAQ entry ID
@@ -129,7 +171,7 @@ export async function updateFAQ(
   try {
     // Build dynamic update query
     const updates: string[] = [];
-    const params: any[] = [];
+    const params: Array<string | number> = [];
 
     if (question) {
       updates.push("question = ?");

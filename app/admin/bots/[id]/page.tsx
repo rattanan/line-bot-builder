@@ -9,7 +9,7 @@ export default async function AdminBotDetailPage({ params }: { params: Promise<{
   const { id } = await params;
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,rgba(244,244,245,0.95),white_42%,#f8fafc_100%)] text-zinc-950">
+    <div className="min-h-screen bg-transparent text-zinc-950 dark:text-white">
       <Header />
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
         <BotDetailClient botId={Number(id)} />

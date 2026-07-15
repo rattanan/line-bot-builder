@@ -33,7 +33,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "message is too long" }, { status: 413, headers: corsHeaders() });
     }
 
-    const answer = await generateBotAnswer(tenantId, message, { userId: `web:${visitorId}` });
+    const answer = await generateBotAnswer(tenantId, message, {
+      userId: `web:${visitorId}`,
+      channel: "web",
+    });
     return NextResponse.json(
       {
         tenantId,

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createToken } from "@/lib/auth";
+import { getAppUrl } from "@/lib/app-url";
 
 export async function GET(req: NextRequest) {
   const state = createToken();
 
-  const redirectUri = new URL("/api/auth/google/callback", req.url);
+  const redirectUri = getAppUrl(req, "/api/auth/google/callback");
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
   authUrl.searchParams.set("client_id", process.env.GOOGLE_CLIENT_ID || "");
   authUrl.searchParams.set("redirect_uri", redirectUri.toString());

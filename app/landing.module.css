@@ -1,0 +1,54 @@
+.heroGrid::after {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  content: "";
+  background-image: linear-gradient(rgba(37, 99, 235, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(37, 99, 235, 0.035) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(to bottom, black, transparent 85%);
+}
+
+.ctaGrid {
+  background-image: linear-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(circle at center, black, transparent 75%);
+}
+
+.floatSoft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+.floatSoftDelay {
+  animation: float-soft 6s ease-in-out 1.2s infinite;
+}
+
+.flowArrow {
+  animation: arrow-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes float-soft {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -5px, 0); }
+}
+
+@keyframes arrow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.3); }
+  50% { box-shadow: 0 0 0 10px rgba(37, 99, 235, 0); }
+}
+
+@media (prefers-color-scheme: dark) {
+  .heroGrid::after {
+    background-image: linear-gradient(rgba(96, 165, 250, 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(96, 165, 250, 0.045) 1px, transparent 1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floatSoft,
+  .floatSoftDelay,
+  .flowArrow {
+    animation: none;
+  }
+}

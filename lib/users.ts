@@ -88,8 +88,8 @@ export async function createUser(input: {
     );
     if (!result.insertId) return null;
     return findUserById(result.insertId);
-  } catch (error: any) {
-    if (error?.code === "ER_DUP_ENTRY") {
+  } catch (error: unknown) {
+    if (error instanceof Error && "code" in error && error.code === "ER_DUP_ENTRY") {
       const dup = new Error("email already exists");
       (dup as Error & { code?: string }).code = "EMAIL_EXISTS";
       throw dup;
@@ -122,6 +122,7 @@ export async function createGoogleUser(input: {
 export async function updateUser(
   id: number,
   input: {
+    email?: string;
     fullName?: string;
     password?: string;
     role?: UserRole;
@@ -131,6 +132,10 @@ export async function updateUser(
   const updates: string[] = [];
   const params: Array<string | number | null> = [];
 
+  if (input.email) {
+    updates.push("email = ?");
+    params.push(input.email);
+  }
   if (input.fullName) {
     updates.push("full_name = ?");
     params.push(input.fullName);

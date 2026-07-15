@@ -1,6 +1,7 @@
 import { ai } from "@/lib/ai";
 import { getFAQData, FAQ } from "@/lib/faq";
 import { saveChatLog } from "@/lib/chat-log";
+import type { ConversationChannel } from "@/lib/chat-log";
 
 const FALLBACK_MESSAGE =
   "ขออภัย ระบบ AI ไม่สามารถให้บริการได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง";
@@ -95,6 +96,7 @@ function jaccardSimilarity(a: string[], b: string[]): number {
 
 interface GenerateAnswerOptions {
   userId?: string;
+  channel?: ConversationChannel;
 }
 
 /**
@@ -123,6 +125,7 @@ export async function generateAnswer(
     if (options.userId) {
       saveChatLog({
         userId: options.userId,
+        channel: options.channel,
         question,
         answer: matchedFAQ.answer,
         source: "mysql_faq",
@@ -147,6 +150,7 @@ export async function generateAnswer(
        if (options.userId) {
          saveChatLog({
            userId: options.userId,
+           channel: options.channel,
            question,
            answer: FALLBACK_MESSAGE,
            source: "fallback",
@@ -164,6 +168,7 @@ export async function generateAnswer(
        if (options.userId) {
          saveChatLog({
            userId: options.userId,
+           channel: options.channel,
            question,
            answer,
            source: "ai",
@@ -180,6 +185,7 @@ export async function generateAnswer(
      if (options.userId) {
        saveChatLog({
          userId: options.userId,
+         channel: options.channel,
          question,
          answer: FALLBACK_MESSAGE,
          source: "fallback",
@@ -197,6 +203,7 @@ export async function generateAnswer(
      if (options.userId) {
        saveChatLog({
          userId: options.userId,
+         channel: options.channel,
          question,
          answer: FALLBACK_MESSAGE,
          source: "fallback",
