@@ -1,4 +1,4 @@
-import { executeQuery, QueryResult } from "./mysql";
+import { executeQuery, QueryResult, withTransaction } from "./mysql";
 import { createToken, hashPassword, hashToken, verifyPassword } from "./auth";
 
 export type UserRole = "USER" | "ADMIN";
@@ -163,6 +163,42 @@ export async function updateUser(
 
 export async function deleteUser(id: number) {
   await executeQuery("DELETE FROM users WHERE id = ?", [id]);
+}
+
+export async function setUserCreditBalance(input: {
+  userId: number;
+  balance: number;
+  reason: string;
+  adminEmail: string;
+}) {
+  return withTransaction(async (connection) => {
+    const [rows] = await connection.execute(
+      "SELECT id, credit_balance FROM users WHERE id = ? FOR UPDATE",
+      [input.userId]
+    );
+    const user = Array.isArray(rows)
+      ? (rows[0] as { id: number; credit_balance: number } | undefined)
+      : undefined;
+    if (!user) return null;
+
+    const amount = input.balance - user.credit_balance;
+    if (amount === 0) {
+      return { userId: user.id, creditBalance: user.credit_balance };
+    }
+
+    await connection.execute(
+      "UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      [input.balance, input.userId]
+    );
+    await connection.execute(
+      `INSERT INTO credit_transactions
+        (user_id, type, amount, balance_before, balance_after, reason, admin_email)
+       VALUES (?, 'adjustment', ?, ?, ?, ?, ?)`,
+      [input.userId, amount, user.credit_balance, input.balance, input.reason, input.adminEmail]
+    );
+
+    return { userId: user.id, creditBalance: input.balance };
+  });
 }
 
 export async function verifyUserCredentials(email: string, password: string) {

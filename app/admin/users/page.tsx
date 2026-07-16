@@ -18,7 +18,7 @@ export default async function AdminUsersPage() {
         <section className="app-card p-8">
           <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-500"><LocalizedText english="Admin portal" thai="ระบบผู้ดูแล" /></span>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight"><LocalizedText english="User management" thai="จัดการผู้ใช้" /></h1>
-          <p className="mt-3 text-sm text-zinc-600"><LocalizedText english="Edit user details and permissions, remove accounts, and review individual billing history." thai="แก้ไขข้อมูลและสิทธิ์ผู้ใช้ ลบบัญชี และตรวจสอบประวัติการเติมเครดิตรายคน" /></p>
+          <p className="mt-3 text-sm text-zinc-600"><LocalizedText english="Edit user details, permissions, and credit balances with an auditable adjustment history." thai="แก้ไขข้อมูล สิทธิ์ และยอดเครดิตของผู้ใช้ พร้อมบันทึกประวัติการปรับเครดิตเพื่อตรวจสอบย้อนหลัง" /></p>
           <UsersManager initialUsers={users} adminId={admin.id} />
         </section>
       </main>

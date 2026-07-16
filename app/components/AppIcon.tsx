@@ -17,7 +17,11 @@ export type AppIconName =
   | "book"
   | "activity"
   | "arrow"
-  | "help";
+  | "help"
+  | "upload"
+  | "download"
+  | "check"
+  | "clock";
 
 export default function AppIcon({ name, className = "h-5 w-5" }: { name: AppIconName; className?: string }) {
   const paths: Record<AppIconName, ReactNode> = {
@@ -38,6 +42,10 @@ export default function AppIcon({ name, className = "h-5 w-5" }: { name: AppIcon
     activity: <path d="M3 12h4l2.5-7 5 14 2.5-7h4" />,
     arrow: <path d="M5 12h14M13 6l6 6-6 6" />,
     help: <><circle cx="12" cy="12" r="9" /><path d="M9.8 9a2.4 2.4 0 0 1 4.7.7c0 1.8-2.5 2.1-2.5 3.8M12 17.5h.01" /></>,
+    upload: <><path d="M12 16V4M7 9l5-5 5 5" /><path d="M5 14v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-5" /></>,
+    download: <><path d="M12 4v12M7 11l5 5 5-5" /><path d="M5 20h14" /></>,
+    check: <path d="m5 12 4 4L19 6" />,
+    clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
   };
 
   return (

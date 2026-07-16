@@ -20,6 +20,8 @@ type EditState = {
   email: string;
   fullName: string;
   role: "USER" | "ADMIN";
+  creditBalance: string;
+  creditReason: string;
 };
 
 export default function UsersManager({ initialUsers, adminId }: { initialUsers: AdminUserRow[]; adminId: number }) {
@@ -27,7 +29,13 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
   const locale = language === "th" ? "th-TH" : "en-US";
   const [users, setUsers] = useState(initialUsers);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [edit, setEdit] = useState<EditState>({ email: "", fullName: "", role: "USER" });
+  const [edit, setEdit] = useState<EditState>({
+    email: "",
+    fullName: "",
+    role: "USER",
+    creditBalance: "0",
+    creditReason: "",
+  });
   const [busyId, setBusyId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -35,7 +43,13 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
 
   function beginEdit(user: AdminUserRow) {
     setEditingId(user.id);
-    setEdit({ email: user.email, fullName: user.full_name, role: user.role });
+    setEdit({
+      email: user.email,
+      fullName: user.full_name,
+      role: user.role,
+      creditBalance: String(user.total_credit),
+      creditReason: text("Admin credit adjustment", "ปรับเครดิตโดยผู้ดูแล"),
+    });
     setError(null);
   }
 
@@ -52,7 +66,13 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
       if (!res.ok) throw new Error(data.error || text("Unable to update user", "ไม่สามารถอัปเดตผู้ใช้ได้"));
       setUsers((current) => current.map((user) => (
         user.id === id
-          ? { ...user, email: data.user.email, full_name: data.user.full_name, role: data.user.role }
+          ? {
+              ...user,
+              email: data.user.email,
+              full_name: data.user.full_name,
+              role: data.user.role,
+              total_credit: data.user.credit_balance,
+            }
           : user
       )));
       setEditingId(null);
@@ -146,7 +166,43 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
                     </span>
                   </td>
                   <td className="px-4 py-4">{user.bot_count}</td>
-                  <td className="px-4 py-4">{Number(user.total_credit).toLocaleString()}</td>
+                  <td className="px-4 py-4">
+                    {isEditing ? (
+                      <div className="grid min-w-44 gap-2">
+                        <label className="grid gap-1">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            {text("New balance", "ยอดเครดิตใหม่")}
+                          </span>
+                          <input
+                            aria-label={text("New credit balance", "ยอดเครดิตใหม่")}
+                            type="number"
+                            min="0"
+                            max="1000000000"
+                            step="1"
+                            inputMode="numeric"
+                            className="w-full rounded-xl border border-zinc-200 px-3 py-2 tabular-nums"
+                            value={edit.creditBalance}
+                            onChange={(event) => setEdit((current) => ({ ...current, creditBalance: event.target.value }))}
+                          />
+                        </label>
+                        <label className="grid gap-1">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            {text("Reason", "เหตุผล")}
+                          </span>
+                          <input
+                            aria-label={text("Credit adjustment reason", "เหตุผลการปรับเครดิต")}
+                            className="w-full rounded-xl border border-zinc-200 px-3 py-2"
+                            value={edit.creditReason}
+                            onChange={(event) => setEdit((current) => ({ ...current, creditReason: event.target.value }))}
+                          />
+                        </label>
+                      </div>
+                    ) : (
+                      <span className="font-semibold tabular-nums text-blue-700 dark:text-blue-300">
+                        {Number(user.total_credit).toLocaleString(locale)}
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-4 text-zinc-500">{new Date(user.created_at).toLocaleDateString(locale)}</td>
                   <td className="px-4 py-4">
                     <div className="flex flex-wrap justify-end gap-2">
