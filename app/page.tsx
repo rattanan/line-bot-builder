@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import BrandLogo, { BrandMark } from "./components/BrandLogo";
+import WatchDemoButton from "./components/WatchDemoButton";
 import styles from "./landing.module.css";
 
 export const metadata: Metadata = {
@@ -115,7 +116,7 @@ export default function Home() {
               <p className="mt-2 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-400">Describe your business, upload a few photos, or share your website. AI builds your knowledge and answers customers through LINE and your website.</p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <Link href="/register" className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-blue-700 to-indigo-600 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 hover:shadow-[0_20px_45px_rgba(37,99,235,0.34)]">Get Started Free <span aria-hidden="true">→</span></Link>
-                <Link href="/chat-test" className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white/75 px-6 py-3.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition hover:border-blue-300 hover:text-blue-700 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:border-blue-400 dark:hover:text-blue-300"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-950 text-[8px] text-white dark:bg-white dark:text-slate-950">▶</span> Live Demo</Link>
+                <WatchDemoButton />
               </div>
               <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-500 dark:text-slate-400">
                 {["No coding", "LINE + Website", "Ready in minutes"].map((item) => <span key={item} className="flex items-center gap-1.5"><Icon name="check" className="h-4 w-4 text-blue-600 dark:text-blue-400" />{item}</span>)}
