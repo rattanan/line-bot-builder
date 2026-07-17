@@ -21,7 +21,11 @@
     launcherIconUrl: currentScript && currentScript.getAttribute("data-logo-url") || globalConfig.logoUrl || "",
     launcherIconType: currentScript && currentScript.getAttribute("data-logo-url") ? "custom" : "default",
     defaultIcon: "chat",
-    launcherShape: "circle"
+    launcherShape: "circle",
+    launcherPosition: "right",
+    horizontalOffset: 20,
+    bottomOffset: 20,
+    showDismissButton: false
   };
   if (!isAllowedLegacyImageUrl(legacyConfig.launcherIconUrl)) legacyConfig.launcherIconUrl = "";
 
@@ -51,7 +55,11 @@
       launcherIconType: iconTypes[value.launcherIconType] ? value.launcherIconType : "default",
       launcherIconUrl: launcherIconUrl,
       defaultIcon: icons[value.defaultIcon] ? value.defaultIcon : "chat",
-      launcherShape: value.launcherShape === "rounded" ? "rounded" : "circle"
+      launcherShape: value.launcherShape === "rounded" ? "rounded" : "circle",
+      launcherPosition: value.launcherPosition === "left" ? "left" : "right",
+      horizontalOffset: normalizeOffset(value.horizontalOffset, fallback.horizontalOffset),
+      bottomOffset: normalizeOffset(value.bottomOffset, fallback.bottomOffset),
+      showDismissButton: value.showDismissButton === true
     };
   }
 
@@ -64,12 +72,14 @@
 
     var style = document.createElement("style");
     style.textContent =
-      ":host{all:initial}.lbb-wrap{--lbb-primary:#000;--lbb-on-primary:#fff;position:fixed;right:20px;bottom:20px;z-index:2147483000;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111827}.lbb-button{width:60px;height:60px;border-radius:999px;border:0;background:var(--lbb-primary);color:var(--lbb-on-primary);box-shadow:0 16px 35px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}.lbb-button.rounded{border-radius:18px}.lbb-launcher-image{width:100%;height:100%;object-fit:cover}.lbb-icon{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.lbb-panel{display:none;width:min(380px,calc(100vw - 28px));height:min(560px,calc(100dvh - 110px));border:1px solid rgba(17,24,39,.12);border-radius:18px;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden}.lbb-panel.open{display:flex;flex-direction:column}.lbb-head{background:var(--lbb-primary);color:var(--lbb-on-primary);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.lbb-title{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;min-width:0}.lbb-title-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbb-logo{width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.92);object-fit:cover;display:grid;place-items:center;flex:none;color:#374151}.lbb-logo .lbb-icon{width:19px;height:19px}.lbb-close{border:0;background:rgba(255,255,255,.2);color:inherit;border-radius:999px;width:36px;height:36px;cursor:pointer;font-size:20px;flex:none}.lbb-messages{flex:1;padding:14px;overflow:auto;background:#f8fafc}.lbb-msg{max-width:82%;margin:0 0 10px;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word}.lbb-bot{background:#fff;border:1px solid #e5e7eb;border-top-left-radius:5px}.lbb-user{margin-left:auto;background:var(--lbb-primary);color:var(--lbb-on-primary);border-top-right-radius:5px}.lbb-loading{display:flex;align-items:center;gap:4px;width:max-content}.lbb-loading span{width:6px;height:6px;border-radius:50%;background:var(--lbb-primary);animation:lbb-pulse 1s infinite ease-in-out}.lbb-loading span:nth-child(2){animation-delay:.15s}.lbb-loading span:nth-child(3){animation-delay:.3s}@keyframes lbb-pulse{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}.lbb-form{display:flex;gap:8px;padding:12px;border-top:1px solid #e5e7eb;background:#fff}.lbb-input{flex:1;min-width:0;border:1px solid #d1d5db;border-radius:999px;padding:11px 13px;font-size:14px;outline:none;color:#111827;background:#fff}.lbb-input:focus{border-color:var(--lbb-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--lbb-primary) 22%,transparent)}.lbb-send{border:0;border-radius:999px;background:var(--lbb-primary);color:var(--lbb-on-primary);padding:0 16px;font-weight:700;cursor:pointer;min-height:44px}.lbb-send:disabled{opacity:.55;cursor:not-allowed}.lbb-button:focus-visible,.lbb-close:focus-visible,.lbb-send:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px var(--lbb-primary)}@media(max-width:520px){.lbb-wrap{right:12px;bottom:12px}.lbb-panel{width:calc(100vw - 24px);height:calc(100dvh - 88px);border-radius:16px}.lbb-button{width:56px;height:56px}}@media(prefers-reduced-motion:reduce){.lbb-loading span{animation:none}.lbb-button{transition:none}}";
+      ":host{all:initial}.lbb-wrap{--lbb-primary:#000;--lbb-on-primary:#fff;--lbb-edge:20px;--lbb-bottom:20px;position:fixed;bottom:var(--lbb-bottom);z-index:2147483000;font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#111827}.lbb-wrap.right{right:var(--lbb-edge)}.lbb-wrap.left{left:var(--lbb-edge)}.lbb-launcher{position:relative;width:60px;height:60px}.lbb-button{width:60px;height:60px;border-radius:999px;border:0;background:var(--lbb-primary);color:var(--lbb-on-primary);box-shadow:0 16px 35px rgba(0,0,0,.22);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;overflow:hidden}.lbb-button.rounded{border-radius:18px}.lbb-dismiss{position:absolute;top:-7px;width:24px;height:24px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#4b5563;box-shadow:0 4px 12px rgba(0,0,0,.18);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-size:16px;line-height:1}.lbb-wrap.right .lbb-dismiss{left:-7px}.lbb-wrap.left .lbb-dismiss{right:-7px}.lbb-restore{display:none;width:36px;height:36px;border-radius:999px;border:1px solid #e5e7eb;background:#fff;color:#374151;box-shadow:0 8px 22px rgba(0,0,0,.18);cursor:pointer;align-items:center;justify-content:center;padding:0}.lbb-restore .lbb-icon{width:19px;height:19px}.lbb-launcher-image{width:100%;height:100%;object-fit:cover}.lbb-icon{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.lbb-panel{display:none;width:min(380px,calc(100vw - var(--lbb-edge) - 14px));height:min(560px,calc(100dvh - var(--lbb-bottom) - 70px));border:1px solid rgba(17,24,39,.12);border-radius:18px;background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.22);overflow:hidden}.lbb-panel.open{display:flex;flex-direction:column}.lbb-head{background:var(--lbb-primary);color:var(--lbb-on-primary);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}.lbb-title{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;min-width:0}.lbb-title-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbb-logo{width:32px;height:32px;border-radius:999px;background:rgba(255,255,255,.92);object-fit:cover;display:grid;place-items:center;flex:none;color:#374151}.lbb-logo .lbb-icon{width:19px;height:19px}.lbb-close{border:0;background:rgba(255,255,255,.2);color:inherit;border-radius:999px;width:36px;height:36px;cursor:pointer;font-size:20px;flex:none}.lbb-messages{flex:1;padding:14px;overflow:auto;background:#f8fafc}.lbb-msg{max-width:82%;margin:0 0 10px;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-break:break-word}.lbb-bot{background:#fff;border:1px solid #e5e7eb;border-top-left-radius:5px}.lbb-user{margin-left:auto;background:var(--lbb-primary);color:var(--lbb-on-primary);border-top-right-radius:5px}.lbb-loading{display:flex;align-items:center;gap:4px;width:max-content}.lbb-loading span{width:6px;height:6px;border-radius:50%;background:var(--lbb-primary);animation:lbb-pulse 1s infinite ease-in-out}.lbb-loading span:nth-child(2){animation-delay:.15s}.lbb-loading span:nth-child(3){animation-delay:.3s}@keyframes lbb-pulse{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}.lbb-form{display:flex;gap:8px;padding:12px;border-top:1px solid #e5e7eb;background:#fff}.lbb-input{flex:1;min-width:0;border:1px solid #d1d5db;border-radius:999px;padding:11px 13px;font-size:14px;outline:none;color:#111827;background:#fff}.lbb-input:focus{border-color:var(--lbb-primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--lbb-primary) 22%,transparent)}.lbb-send{border:0;border-radius:999px;background:var(--lbb-primary);color:var(--lbb-on-primary);padding:0 16px;font-weight:700;cursor:pointer;min-height:44px}.lbb-send:disabled{opacity:.55;cursor:not-allowed}.lbb-button:focus-visible,.lbb-close:focus-visible,.lbb-send:focus-visible,.lbb-dismiss:focus-visible,.lbb-restore:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px var(--lbb-primary)}@media(max-width:520px){.lbb-panel{border-radius:16px}.lbb-launcher,.lbb-button{width:56px;height:56px}}@media(prefers-reduced-motion:reduce){.lbb-loading span{animation:none}.lbb-button{transition:none}}";
     shadow.appendChild(style);
 
-    var wrap = element("div", "lbb-wrap");
+    var wrap = element("div", "lbb-wrap " + config.launcherPosition);
     wrap.style.setProperty("--lbb-primary", config.primaryColor);
     wrap.style.setProperty("--lbb-on-primary", config.foregroundColor);
+    wrap.style.setProperty("--lbb-edge", config.horizontalOffset + "px");
+    wrap.style.setProperty("--lbb-bottom", config.bottomOffset + "px");
     var panel = element("div", "lbb-panel");
     panel.setAttribute("role", "dialog");
     panel.setAttribute("aria-label", "Chat with " + config.botName);
@@ -96,9 +106,17 @@
     var button = element("button", "lbb-button" + (config.launcherShape === "rounded" ? " rounded" : ""));
     button.type = "button"; button.setAttribute("aria-label", "Open chat"); button.setAttribute("aria-expanded", "false");
     appendLauncherContent(button, config, true);
-    wrap.appendChild(panel); wrap.appendChild(button); shadow.appendChild(wrap);
+    var launcher = element("div", "lbb-launcher");
+    launcher.appendChild(button);
+    var dismiss = element("button", "lbb-dismiss");
+    dismiss.type = "button"; dismiss.setAttribute("aria-label", "Hide chat button"); dismiss.textContent = "×";
+    if (config.showDismissButton) launcher.appendChild(dismiss);
+    var restore = element("button", "lbb-restore");
+    restore.type = "button"; restore.setAttribute("aria-label", "Show chat button"); restore.appendChild(createIcon("chat"));
+    wrap.appendChild(panel); wrap.appendChild(launcher); if (config.showDismissButton) wrap.appendChild(restore); shadow.appendChild(wrap);
 
     var visitorId = getVisitorId();
+    var launcherDismissed = false;
     function addMessage(text, type) {
       var node = element("div", "lbb-msg " + (type === "user" ? "lbb-user" : "lbb-bot"));
       node.textContent = String(text);
@@ -114,7 +132,7 @@
     }
     function setOpen(open) {
       panel.classList.toggle("open", open); panel.setAttribute("aria-hidden", open ? "false" : "true");
-      button.style.display = open ? "none" : "flex"; button.setAttribute("aria-expanded", open ? "true" : "false");
+      launcher.style.display = open || launcherDismissed ? "none" : "block"; restore.style.display = "none"; button.setAttribute("aria-expanded", open ? "true" : "false");
       if (open) input.focus(); else button.focus();
     }
     button.addEventListener("click", function () {
@@ -122,6 +140,8 @@
       if (!messages.getAttribute("data-greeted")) { addMessage(config.greetingMessage, "bot"); messages.setAttribute("data-greeted", "1"); }
     });
     close.addEventListener("click", function () { setOpen(false); });
+    dismiss.addEventListener("click", function () { launcherDismissed = true; launcher.style.display = "none"; restore.style.display = "flex"; restore.focus(); });
+    restore.addEventListener("click", function () { launcherDismissed = false; restore.style.display = "none"; launcher.style.display = "block"; button.focus(); });
     panel.addEventListener("keydown", function (event) { if (event.key === "Escape") setOpen(false); });
     form.addEventListener("submit", function (event) {
       event.preventDefault();
@@ -168,6 +188,7 @@
 
   function element(tag, className) { var node = document.createElement(tag); node.className = className; return node; }
   function isHexColor(value) { return /^#[0-9a-f]{6}$/i.test(String(value || "")); }
+  function normalizeOffset(value, fallback) { var number = Number(value); if (!Number.isInteger(number) || number < 0 || number > 200) { number = Number(fallback); } return Number.isInteger(number) && number >= 0 && number <= 200 ? number : 20; }
   function isSafeImageUrl(value) { try { var url = new URL(String(value || ""), scriptOrigin); return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : ""; } catch { return ""; } }
   function isAllowedLegacyImageUrl(value) { try { var url = new URL(String(value || ""), scriptOrigin); return url.origin === scriptOrigin || url.hostname === "profile.line-scdn.net"; } catch { return false; } }
   function contrastingText(hex) { var channels = [1, 3, 5].map(function (offset) { var value = parseInt(hex.slice(offset, offset + 2), 16) / 255; return value <= .03928 ? value / 12.92 : Math.pow((value + .055) / 1.055, 2.4); }); var luminance = .2126 * channels[0] + .7152 * channels[1] + .0722 * channels[2]; return 1.05 / (luminance + .05) >= (luminance + .05) / .05 ? "#FFFFFF" : "#000000"; }

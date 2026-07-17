@@ -2,13 +2,16 @@
 /* eslint-disable @next/next/no-img-element -- blob previews and allowlisted runtime storage URLs are intentionally rendered directly. */
 
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import Link from "next/link";
 import { useLanguage } from "@/app/components/LanguageProvider";
 import {
   DEFAULT_WIDGET_APPEARANCE,
+  WIDGET_OFFSET_MAX,
   getContrastingTextColor,
   normalizeHexColor,
   type WidgetDefaultIcon,
   type WidgetLauncherIconType,
+  type WidgetLauncherPosition,
   type WidgetLauncherShape,
 } from "@/lib/widget-appearance";
 
@@ -20,6 +23,10 @@ type Settings = {
   defaultIcon: WidgetDefaultIcon;
   customIconUrl: string | null;
   launcherShape: WidgetLauncherShape;
+  launcherPosition: WidgetLauncherPosition;
+  horizontalOffset: number;
+  bottomOffset: number;
+  showDismissButton: boolean;
   publicToken: string;
 };
 
@@ -44,6 +51,7 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
   const [pendingIcon, setPendingIcon] = useState<File | null>(null);
   const [pendingIconUrl, setPendingIconUrl] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(true);
+  const [previewDismissed, setPreviewDismissed] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -129,7 +137,16 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
       const response = await fetch(`/api/dashboard/bots/${botId}/widget`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ primaryColor: validColor, launcherIconType: nextSettings.launcherIconType, defaultIcon: nextSettings.defaultIcon, launcherShape: nextSettings.launcherShape }),
+        body: JSON.stringify({
+          primaryColor: validColor,
+          launcherIconType: nextSettings.launcherIconType,
+          defaultIcon: nextSettings.defaultIcon,
+          launcherShape: nextSettings.launcherShape,
+          launcherPosition: nextSettings.launcherPosition,
+          horizontalOffset: nextSettings.horizontalOffset,
+          bottomOffset: nextSettings.bottomOffset,
+          showDismissButton: nextSettings.showDismissButton,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Save failed");
@@ -169,7 +186,7 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
       const response = await fetch(`/api/dashboard/bots/${botId}/widget`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reset: true }) });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Reset failed");
-      setSettings(data.widget); setPrimaryColorInput(data.widget.primaryColor); setPendingIcon(null); setPendingIconUrl(null);
+      setSettings(data.widget); setPrimaryColorInput(data.widget.primaryColor); setPendingIcon(null); setPendingIconUrl(null); setPreviewDismissed(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
       setNotice({ type: "success", message: text("Reset to the default blue theme and chat icon.", "รีเซ็ตเป็นธีมสีฟ้าและไอคอนแชทเริ่มต้นแล้ว") });
     } catch (error) {
@@ -184,7 +201,7 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
       <div className="border-b border-zinc-200 px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Website Chat Widget</p><h2 className="mt-1 text-xl font-semibold text-zinc-950 dark:text-white">{text("Appearance & embed", "หน้าตาและโค้ดฝัง")}</h2><p className="mt-1 text-sm text-zinc-600">{text("Customize this bot's launcher and see every change instantly.", "ปรับปุ่มเปิดแชทของ Bot นี้และดูผลลัพธ์ได้ทันที")}</p></div>
-          <div className="flex flex-wrap gap-2"><button type="button" onClick={reset} disabled={busy} className="app-button-outline min-h-11 disabled:opacity-40">{text("Reset default", "รีเซ็ตค่าเริ่มต้น")}</button><button type="button" onClick={save} disabled={busy || !validColor} aria-busy={busy} className="app-button-primary min-h-11 disabled:opacity-40">{busy ? text("Saving…", "กำลังบันทึก…") : text("Save appearance", "บันทึกรูปลักษณ์")}</button></div>
+          <div className="flex flex-wrap gap-2"><Link href={`/dashboard/bots/${botId}/widget-demo`} className="app-button-outline min-h-11">{text("Open real demo", "เปิด Demo จริง")}</Link><button type="button" onClick={reset} disabled={busy} className="app-button-outline min-h-11 disabled:opacity-40">{text("Reset default", "รีเซ็ตค่าเริ่มต้น")}</button><button type="button" onClick={save} disabled={busy || !validColor} aria-busy={busy} className="app-button-primary min-h-11 disabled:opacity-40">{busy ? text("Saving…", "กำลังบันทึก…") : text("Save appearance", "บันทึกรูปลักษณ์")}</button></div>
         </div>
         {notice && <div aria-live="polite" className={`mt-4 rounded-2xl border px-4 py-3 text-sm ${notice.type === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-red-200 bg-red-50 text-red-700"}`}>{notice.message}</div>}
       </div>
@@ -227,6 +244,26 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
           </fieldset>
 
           <fieldset><legend className="text-base font-semibold text-zinc-900 dark:text-white">3. {text("Launcher shape", "รูปทรงปุ่ม")}</legend><div className="mt-4 grid grid-cols-2 gap-3">{(["circle", "rounded"] as WidgetLauncherShape[]).map((shape) => <button key={shape} type="button" onClick={() => updateSetting("launcherShape", shape)} aria-pressed={settings.launcherShape === shape} className={`min-h-12 rounded-2xl border px-4 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 ${settings.launcherShape === shape ? "border-blue-500 bg-blue-50 text-blue-700" : "border-zinc-200 bg-white text-zinc-700"}`}>{shape === "circle" ? text("Circle", "วงกลม") : text("Rounded square", "สี่เหลี่ยมมุมโค้ง")}</button>)}</div></fieldset>
+
+          <fieldset>
+            <legend className="text-base font-semibold text-zinc-900 dark:text-white">4. {text("Position & spacing", "ตำแหน่งและระยะห่าง")}</legend>
+            <p className="mt-1 text-sm text-zinc-500">{text("Choose a bottom corner and set the distance from the screen edges.", "เลือกมุมด้านล่างและกำหนดระยะห่างจากขอบหน้าจอ")}</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {(["left", "right"] as WidgetLauncherPosition[]).map((position) => <button key={position} type="button" onClick={() => updateSetting("launcherPosition", position)} aria-pressed={settings.launcherPosition === position} className={`min-h-12 rounded-2xl border px-4 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-blue-500 ${settings.launcherPosition === position ? "border-blue-500 bg-blue-50 text-blue-700" : "border-zinc-200 bg-white text-zinc-700"}`}>{position === "left" ? text("Bottom left", "ล่างซ้าย") : text("Bottom right", "ล่างขวา")}</button>)}
+            </div>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <OffsetInput label={text("Distance from side", "ระยะจากขอบด้านข้าง")} value={settings.horizontalOffset} onChange={(value) => updateSetting("horizontalOffset", value)} />
+              <OffsetInput label={text("Distance from bottom", "ระยะจากขอบด้านล่าง")} value={settings.bottomOffset} onChange={(value) => updateSetting("bottomOffset", value)} />
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="text-base font-semibold text-zinc-900 dark:text-white">5. {text("Bubble visibility", "การซ่อน Bubble")}</legend>
+            <button type="button" role="switch" aria-checked={settings.showDismissButton} onClick={() => { updateSetting("showDismissButton", !settings.showDismissButton); setPreviewDismissed(false); }} className="mt-4 flex min-h-16 w-full items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white px-4 text-left focus-visible:ring-2 focus-visible:ring-blue-500">
+              <span><span className="block text-sm font-semibold text-zinc-900">{text("Show hide/show control", "แสดงปุ่มซ่อน/แสดง Bubble")}</span><span className="mt-1 block text-xs leading-5 text-zinc-500">{text("Visitors can temporarily hide the launcher and bring it back.", "ผู้เข้าชมสามารถซ่อนปุ่มแชทชั่วคราวและเรียกกลับมาได้")}</span></span>
+              <span className={`relative h-7 w-12 shrink-0 rounded-full transition ${settings.showDismissButton ? "bg-blue-600" : "bg-zinc-300"}`} aria-hidden="true"><span className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow transition ${settings.showDismissButton ? "left-6" : "left-1"}`} /></span>
+            </button>
+          </fieldset>
         </div>
 
         <aside className="border-t border-zinc-200 bg-zinc-100/80 p-4 sm:p-6 lg:border-l lg:border-t-0">
@@ -234,7 +271,7 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
             <div className="mb-3 flex items-center justify-between"><div><h3 className="font-semibold text-zinc-900">{text("Live preview", "ตัวอย่างแบบ Real-time")}</h3><p className="text-xs text-zinc-500">Desktop · Mobile responsive</p></div><button type="button" onClick={() => setPreviewOpen((value) => !value)} aria-pressed={previewOpen} className="min-h-11 rounded-full border border-zinc-200 bg-white px-4 text-xs font-medium text-zinc-700">{previewOpen ? text("Show launcher", "ดูปุ่มเปิด") : text("Open chat", "เปิดแชท")}</button></div>
             <div className="relative min-h-[570px] overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-inner" style={{ backgroundImage: "linear-gradient(#e4e4e7 1px, transparent 1px), linear-gradient(90deg, #e4e4e7 1px, transparent 1px)", backgroundSize: "24px 24px" }}>
               <div className="absolute left-5 top-5 h-3 w-28 rounded-full bg-zinc-200" /><div className="absolute left-5 top-11 h-2 w-44 rounded-full bg-zinc-100" />
-              {previewOpen ? <ChatPreview settings={settings} previewColor={previewColor} foregroundColor={foregroundColor} previewIconUrl={previewIconUrl} close={() => setPreviewOpen(false)} text={text} /> : <button type="button" onClick={() => setPreviewOpen(true)} aria-label={text("Open preview chat", "เปิดตัวอย่างแชท")} className={`absolute bottom-5 right-5 grid h-16 w-16 place-items-center overflow-hidden shadow-xl transition ${settings.launcherShape === "circle" ? "rounded-full" : "rounded-[20px]"}`} style={{ backgroundColor: previewColor, color: foregroundColor }}>{previewIconUrl ? <img src={previewIconUrl} alt="" className="h-full w-full object-cover" /> : <WidgetIcon name={settings.defaultIcon} className="h-8 w-8" />}</button>}
+              {previewOpen ? <ChatPreview settings={settings} previewColor={previewColor} foregroundColor={foregroundColor} previewIconUrl={previewIconUrl} close={() => setPreviewOpen(false)} text={text} /> : <LauncherPreview settings={settings} previewColor={previewColor} foregroundColor={foregroundColor} previewIconUrl={previewIconUrl} dismissed={previewDismissed} open={() => setPreviewOpen(true)} dismiss={() => setPreviewDismissed(true)} restore={() => setPreviewDismissed(false)} text={text} />}
             </div>
             <div className="mt-5 rounded-2xl bg-zinc-950 p-4 text-zinc-100"><div className="flex items-center justify-between gap-3"><p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Embed code</p><button type="button" onClick={async () => { await navigator.clipboard.writeText(embedCode); setNotice({ type: "success", message: text("Embed code copied.", "คัดลอกโค้ดฝังแล้ว") }); }} className="min-h-11 rounded-full bg-white/10 px-4 text-xs font-medium hover:bg-white/15">{text("Copy code", "คัดลอกโค้ด")}</button></div><pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all text-xs leading-6 text-blue-200">{embedCode}</pre><p className="mt-2 text-xs leading-5 text-zinc-400">{text("The public token identifies this widget without exposing the bot's internal ID or LINE credentials.", "Public token ใช้ระบุ Widget โดยไม่เปิดเผย Bot ID ภายในหรือข้อมูล LINE")}</p></div>
           </div>
@@ -245,7 +282,28 @@ export default function WidgetAppearanceSettings({ botId }: { botId: number }) {
 }
 
 function ChatPreview({ settings, previewColor, foregroundColor, previewIconUrl, close, text }: { settings: Settings; previewColor: string; foregroundColor: string; previewIconUrl: string | null; close: () => void; text: (en: string, th: string) => string }) {
-  return <div className="absolute inset-x-3 bottom-3 flex h-[455px] flex-col overflow-hidden rounded-[22px] border border-black/10 bg-white shadow-2xl sm:inset-x-5"><div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: previewColor, color: foregroundColor }}><div className="flex min-w-0 items-center gap-2.5"><div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-white/90">{previewIconUrl ? <img src={previewIconUrl} alt="" className="h-full w-full object-cover" /> : <WidgetIcon name={settings.defaultIcon} className="h-5 w-5 text-zinc-700" />}</div><div className="min-w-0"><p className="truncate text-sm font-semibold">{settings.botName}</p><p className="text-[10px] opacity-80">● Online</p></div></div><button type="button" aria-label={text("Close preview chat", "ปิดตัวอย่างแชท")} onClick={close} className="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-lg">×</button></div><div className="flex-1 space-y-3 bg-zinc-50 p-4 text-xs"><div className="max-w-[82%] rounded-2xl rounded-tl-md border border-zinc-200 bg-white px-3 py-2.5 text-zinc-700 shadow-sm">{text("Hello! How can I help you today?", "สวัสดีครับ มีอะไรให้ช่วยไหมครับ")}</div><div className="ml-auto max-w-[82%] rounded-2xl rounded-tr-md px-3 py-2.5 shadow-sm" style={{ backgroundColor: previewColor, color: foregroundColor }}>{text("I'd like to know more about your products.", "อยากทราบข้อมูลสินค้าเพิ่มเติมครับ")}</div><div className="flex w-fit items-center gap-1.5 rounded-2xl rounded-tl-md border border-zinc-200 bg-white px-3 py-3" aria-label={text("Loading", "กำลังโหลด")}>{[0, 1, 2].map((dot) => <span key={dot} className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: previewColor, opacity: 1 - dot * 0.2 }} />)}</div></div><div className="flex gap-2 border-t border-zinc-200 bg-white p-3"><div className="flex-1 rounded-full border border-zinc-200 px-4 py-2.5 text-xs text-zinc-400">{text("Type a message…", "พิมพ์ข้อความ…")}</div><div className="grid h-10 w-10 place-items-center rounded-full" style={{ backgroundColor: previewColor, color: foregroundColor }}><svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg></div></div></div>;
+  const edgeOffset = previewOffset(settings.horizontalOffset);
+  const bottomOffset = previewOffset(settings.bottomOffset);
+  const sideStyle = settings.launcherPosition === "left" ? { left: edgeOffset } : { right: edgeOffset };
+  return <div className="absolute flex h-[455px] max-w-[380px] flex-col overflow-hidden rounded-[22px] border border-black/10 bg-white shadow-2xl" style={{ ...sideStyle, bottom: bottomOffset, width: `calc(100% - ${edgeOffset + 12}px)` }}><div className="flex items-center justify-between px-4 py-3" style={{ backgroundColor: previewColor, color: foregroundColor }}><div className="flex min-w-0 items-center gap-2.5"><div className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full bg-white/90">{previewIconUrl ? <img src={previewIconUrl} alt="" className="h-full w-full object-cover" /> : <WidgetIcon name={settings.defaultIcon} className="h-5 w-5 text-zinc-700" />}</div><div className="min-w-0"><p className="truncate text-sm font-semibold">{settings.botName}</p><p className="text-[10px] opacity-80">● Online</p></div></div><button type="button" aria-label={text("Close preview chat", "ปิดตัวอย่างแชท")} onClick={close} className="grid h-9 w-9 place-items-center rounded-full bg-white/20 text-lg">×</button></div><div className="flex-1 space-y-3 bg-zinc-50 p-4 text-xs"><div className="max-w-[82%] rounded-2xl rounded-tl-md border border-zinc-200 bg-white px-3 py-2.5 text-zinc-700 shadow-sm">{text("Hello! How can I help you today?", "สวัสดีครับ มีอะไรให้ช่วยไหมครับ")}</div><div className="ml-auto max-w-[82%] rounded-2xl rounded-tr-md px-3 py-2.5 shadow-sm" style={{ backgroundColor: previewColor, color: foregroundColor }}>{text("I'd like to know more about your products.", "อยากทราบข้อมูลสินค้าเพิ่มเติมครับ")}</div><div className="flex w-fit items-center gap-1.5 rounded-2xl rounded-tl-md border border-zinc-200 bg-white px-3 py-3" aria-label={text("Loading", "กำลังโหลด")}>{[0, 1, 2].map((dot) => <span key={dot} className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: previewColor, opacity: 1 - dot * 0.2 }} />)}</div></div><div className="flex gap-2 border-t border-zinc-200 bg-white p-3"><div className="flex-1 rounded-full border border-zinc-200 px-4 py-2.5 text-xs text-zinc-400">{text("Type a message…", "พิมพ์ข้อความ…")}</div><div className="grid h-10 w-10 place-items-center rounded-full" style={{ backgroundColor: previewColor, color: foregroundColor }}><svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" /></svg></div></div></div>;
+}
+
+function LauncherPreview({ settings, previewColor, foregroundColor, previewIconUrl, dismissed, open, dismiss, restore, text }: { settings: Settings; previewColor: string; foregroundColor: string; previewIconUrl: string | null; dismissed: boolean; open: () => void; dismiss: () => void; restore: () => void; text: (en: string, th: string) => string }) {
+  const sideStyle = settings.launcherPosition === "left" ? { left: previewOffset(settings.horizontalOffset) } : { right: previewOffset(settings.horizontalOffset) };
+  return <div className="absolute" style={{ ...sideStyle, bottom: previewOffset(settings.bottomOffset) }}>
+    {dismissed ? <button type="button" onClick={restore} aria-label={text("Show chat bubble", "แสดง Chat Bubble")} className="grid h-10 w-10 place-items-center rounded-full border border-zinc-200 bg-white text-zinc-700 shadow-lg"><WidgetIcon name="chat" className="h-5 w-5" /></button> : <div className="relative">
+      <button type="button" onClick={open} aria-label={text("Open preview chat", "เปิดตัวอย่างแชท")} className={`grid h-16 w-16 place-items-center overflow-hidden shadow-xl transition ${settings.launcherShape === "circle" ? "rounded-full" : "rounded-[20px]"}`} style={{ backgroundColor: previewColor, color: foregroundColor }}>{previewIconUrl ? <img src={previewIconUrl} alt="" className="h-full w-full object-cover" /> : <WidgetIcon name={settings.defaultIcon} className="h-8 w-8" />}</button>
+      {settings.showDismissButton && <button type="button" onClick={dismiss} aria-label={text("Hide chat bubble", "ซ่อน Chat Bubble")} className={`absolute -top-2 grid h-6 w-6 place-items-center rounded-full border border-zinc-200 bg-white text-xs font-bold text-zinc-600 shadow-md ${settings.launcherPosition === "left" ? "-right-2" : "-left-2"}`}>×</button>}
+    </div>}
+  </div>;
+}
+
+function OffsetInput({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
+  return <label className="rounded-2xl border border-zinc-200 bg-white px-4 py-3"><span className="block text-xs font-medium text-zinc-600">{label}</span><span className="mt-2 flex items-center gap-2"><input type="number" min={0} max={WIDGET_OFFSET_MAX} step={1} value={value} onChange={(event) => { const next = Number(event.target.value); if (Number.isInteger(next) && next >= 0 && next <= WIDGET_OFFSET_MAX) onChange(next); }} className="min-w-0 flex-1 bg-transparent font-mono text-sm text-zinc-900 outline-none" /><span className="text-xs text-zinc-400">px</span></span></label>;
+}
+
+function previewOffset(value: number) {
+  return Math.min(value, 96);
 }
 
 function IconTypeButton({ selected, disabled, onClick, title, description }: { selected: boolean; disabled?: boolean; onClick: () => void; title: string; description: string }) {

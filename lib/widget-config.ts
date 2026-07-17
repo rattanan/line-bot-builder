@@ -6,8 +6,10 @@ import {
   getContrastingTextColor,
   isWidgetDefaultIcon,
   isWidgetIconType,
+  isWidgetPosition,
   isWidgetShape,
   normalizeHexColor,
+  normalizeWidgetOffset,
   type WidgetAppearance,
 } from "./widget-appearance";
 
@@ -21,6 +23,10 @@ type WidgetConfigRow = {
   widget_default_icon: string;
   widget_custom_icon_url: string | null;
   widget_launcher_shape: string;
+  widget_launcher_position: string;
+  widget_horizontal_offset: number;
+  widget_bottom_offset: number;
+  widget_show_dismiss_button: number;
 };
 
 export type PublicWidgetConfig = WidgetAppearance & {
@@ -42,7 +48,8 @@ export async function getPublicWidgetConfigByToken(token: string, origin: string
   if (!/^[a-f0-9]{64}$/i.test(token)) return null;
   const result = await executeQuery<WidgetConfigRow>(
     `SELECT id, bot_name, status, bot_profile_image_url, widget_primary_color,
-            widget_launcher_icon_type, widget_default_icon, widget_custom_icon_url, widget_launcher_shape
+            widget_launcher_icon_type, widget_default_icon, widget_custom_icon_url, widget_launcher_shape,
+            widget_launcher_position, widget_horizontal_offset, widget_bottom_offset, widget_show_dismiss_button
      FROM bots
      WHERE widget_public_token = ? AND status = 'active'
      LIMIT 1`,
@@ -55,7 +62,8 @@ export async function getPublicWidgetConfigByBotId(botId: number, origin: string
   if (!Number.isSafeInteger(botId) || botId <= 0) return null;
   const result = await executeQuery<WidgetConfigRow>(
     `SELECT id, bot_name, status, bot_profile_image_url, widget_primary_color,
-            widget_launcher_icon_type, widget_default_icon, widget_custom_icon_url, widget_launcher_shape
+            widget_launcher_icon_type, widget_default_icon, widget_custom_icon_url, widget_launcher_shape,
+            widget_launcher_position, widget_horizontal_offset, widget_bottom_offset, widget_show_dismiss_button
      FROM bots
      WHERE id = ? AND status = 'active'
      LIMIT 1`,
@@ -91,6 +99,13 @@ function toPublicWidgetConfig(row: WidgetConfigRow, origin: string): PublicWidge
   const launcherShape = isWidgetShape(row.widget_launcher_shape)
     ? row.widget_launcher_shape
     : DEFAULT_WIDGET_APPEARANCE.launcherShape;
+  const launcherPosition = isWidgetPosition(row.widget_launcher_position)
+    ? row.widget_launcher_position
+    : DEFAULT_WIDGET_APPEARANCE.launcherPosition;
+  const horizontalOffset = normalizeWidgetOffset(row.widget_horizontal_offset)
+    ?? DEFAULT_WIDGET_APPEARANCE.horizontalOffset;
+  const bottomOffset = normalizeWidgetOffset(row.widget_bottom_offset)
+    ?? DEFAULT_WIDGET_APPEARANCE.bottomOffset;
   let launcherIconType = isWidgetIconType(row.widget_launcher_icon_type)
     ? row.widget_launcher_icon_type
     : DEFAULT_WIDGET_APPEARANCE.launcherIconType;
@@ -108,5 +123,9 @@ function toPublicWidgetConfig(row: WidgetConfigRow, origin: string): PublicWidge
     defaultIcon,
     launcherIconUrl,
     launcherShape,
+    launcherPosition,
+    horizontalOffset,
+    bottomOffset,
+    showDismissButton: row.widget_show_dismiss_button === 1,
   };
 }

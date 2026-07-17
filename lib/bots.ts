@@ -1,6 +1,6 @@
 import { executeQuery, withTransaction } from "./mysql";
 import { randomBytes } from "crypto";
-import type { WidgetDefaultIcon, WidgetLauncherIconType, WidgetLauncherShape } from "./widget-appearance";
+import type { WidgetDefaultIcon, WidgetLauncherIconType, WidgetLauncherPosition, WidgetLauncherShape } from "./widget-appearance";
 
 export type BotStatus = "active" | "suspended";
 
@@ -24,6 +24,10 @@ export type BotDetail = Bot & {
   widget_default_icon: WidgetDefaultIcon;
   widget_custom_icon_url: string | null;
   widget_launcher_shape: WidgetLauncherShape;
+  widget_launcher_position: WidgetLauncherPosition;
+  widget_horizontal_offset: number;
+  widget_bottom_offset: number;
+  widget_show_dismiss_button: number;
   widget_public_token: string;
   credit_balance: number;
   status: BotStatus;
@@ -34,7 +38,9 @@ export async function getBotById(id: number): Promise<BotDetail | null> {
     `SELECT id, user_id, bot_name, business_name, business_description, system_prompt,
             bot_profile_image_url, line_channel_secret, line_channel_access_token,
             widget_primary_color, widget_launcher_icon_type, widget_default_icon,
-            widget_custom_icon_url, widget_launcher_shape, widget_public_token, credit_balance, status,
+            widget_custom_icon_url, widget_launcher_shape, widget_launcher_position,
+            widget_horizontal_offset, widget_bottom_offset, widget_show_dismiss_button,
+            widget_public_token, credit_balance, status,
             created_at, updated_at
      FROM bots
      WHERE id = ?
@@ -49,7 +55,9 @@ export async function getBotsByUserId(userId: number): Promise<BotDetail[]> {
     `SELECT id, user_id, bot_name, business_name, business_description, system_prompt,
             bot_profile_image_url, line_channel_secret, line_channel_access_token,
             widget_primary_color, widget_launcher_icon_type, widget_default_icon,
-            widget_custom_icon_url, widget_launcher_shape, widget_public_token, credit_balance, status,
+            widget_custom_icon_url, widget_launcher_shape, widget_launcher_position,
+            widget_horizontal_offset, widget_bottom_offset, widget_show_dismiss_button,
+            widget_public_token, credit_balance, status,
             created_at, updated_at
      FROM bots
      WHERE user_id = ?
@@ -128,7 +136,9 @@ export async function createBotWithFaqs(input: {
       `SELECT id, user_id, bot_name, business_name, business_description, system_prompt,
               bot_profile_image_url, line_channel_secret, line_channel_access_token,
               widget_primary_color, widget_launcher_icon_type, widget_default_icon,
-              widget_custom_icon_url, widget_launcher_shape, widget_public_token, credit_balance, status,
+              widget_custom_icon_url, widget_launcher_shape, widget_launcher_position,
+              widget_horizontal_offset, widget_bottom_offset, widget_show_dismiss_button,
+              widget_public_token, credit_balance, status,
               created_at, updated_at
        FROM bots
        WHERE id = ?
@@ -159,6 +169,10 @@ export async function updateBot(
     widget_default_icon: "widget_default_icon",
     widget_custom_icon_url: "widget_custom_icon_url",
     widget_launcher_shape: "widget_launcher_shape",
+    widget_launcher_position: "widget_launcher_position",
+    widget_horizontal_offset: "widget_horizontal_offset",
+    widget_bottom_offset: "widget_bottom_offset",
+    widget_show_dismiss_button: "widget_show_dismiss_button",
     credit_balance: "credit_balance",
     status: "status",
   };

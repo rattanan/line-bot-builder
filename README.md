@@ -122,6 +122,12 @@ mysql -u root -p ai_sales_companion < sql/topup-migration.sql
 mysql -u root -p ai_sales_companion < sql/business-insight-migration.sql
 ```
 
+For an existing database that already has the widget appearance columns, apply the additive position settings migration:
+
+```bash
+mysql -u root -p ai_sales_companion < sql/widget-position-migration.sql
+```
+
 Optional Build Week demo data:
 
 ```bash
