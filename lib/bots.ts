@@ -1,4 +1,6 @@
-import { executeQuery, QueryResult, withTransaction } from "./mysql";
+import { executeQuery, withTransaction } from "./mysql";
+import { randomBytes } from "crypto";
+import type { WidgetDefaultIcon, WidgetLauncherIconType, WidgetLauncherShape } from "./widget-appearance";
 
 export type BotStatus = "active" | "suspended";
 
@@ -14,8 +16,15 @@ export type BotDetail = Bot & {
   business_name: string;
   business_description: string;
   system_prompt: string;
+  bot_profile_image_url: string | null;
   line_channel_secret: string | null;
   line_channel_access_token: string | null;
+  widget_primary_color: string;
+  widget_launcher_icon_type: WidgetLauncherIconType;
+  widget_default_icon: WidgetDefaultIcon;
+  widget_custom_icon_url: string | null;
+  widget_launcher_shape: WidgetLauncherShape;
+  widget_public_token: string;
   credit_balance: number;
   status: BotStatus;
 };
@@ -23,7 +32,9 @@ export type BotDetail = Bot & {
 export async function getBotById(id: number): Promise<BotDetail | null> {
   const result = await executeQuery<BotDetail>(
     `SELECT id, user_id, bot_name, business_name, business_description, system_prompt,
-            line_channel_secret, line_channel_access_token, credit_balance, status,
+            bot_profile_image_url, line_channel_secret, line_channel_access_token,
+            widget_primary_color, widget_launcher_icon_type, widget_default_icon,
+            widget_custom_icon_url, widget_launcher_shape, widget_public_token, credit_balance, status,
             created_at, updated_at
      FROM bots
      WHERE id = ?
@@ -36,7 +47,9 @@ export async function getBotById(id: number): Promise<BotDetail | null> {
 export async function getBotsByUserId(userId: number): Promise<BotDetail[]> {
   const result = await executeQuery<BotDetail>(
     `SELECT id, user_id, bot_name, business_name, business_description, system_prompt,
-            line_channel_secret, line_channel_access_token, credit_balance, status,
+            bot_profile_image_url, line_channel_secret, line_channel_access_token,
+            widget_primary_color, widget_launcher_icon_type, widget_default_icon,
+            widget_custom_icon_url, widget_launcher_shape, widget_public_token, credit_balance, status,
             created_at, updated_at
      FROM bots
      WHERE user_id = ?
@@ -58,8 +71,8 @@ export async function createBot(input: {
   const result = await executeQuery(
     `INSERT INTO bots (
       user_id, bot_name, business_name, business_description, system_prompt,
-      line_channel_secret, line_channel_access_token, credit_balance, status, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)`,
+      line_channel_secret, line_channel_access_token, widget_public_token, credit_balance, status, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)`,
     [
       input.userId,
       input.botName,
@@ -68,6 +81,7 @@ export async function createBot(input: {
       input.systemPrompt,
       input.lineChannelSecret,
       input.lineChannelAccessToken,
+      randomBytes(32).toString("hex"),
     ]
   );
   return result.insertId ? getBotById(result.insertId) : null;
@@ -87,8 +101,8 @@ export async function createBotWithFaqs(input: {
     const [result] = await connection.execute(
       `INSERT INTO bots (
         user_id, bot_name, business_name, business_description, system_prompt,
-        line_channel_secret, line_channel_access_token, credit_balance, status, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)`,
+        line_channel_secret, line_channel_access_token, widget_public_token, credit_balance, status, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 'active', CURRENT_TIMESTAMP)`,
       [
         input.userId,
         input.botName,
@@ -97,6 +111,7 @@ export async function createBotWithFaqs(input: {
         input.systemPrompt,
         input.lineChannelSecret,
         input.lineChannelAccessToken,
+        randomBytes(32).toString("hex"),
       ]
     );
     const botId = (result as { insertId?: number }).insertId;
@@ -111,7 +126,9 @@ export async function createBotWithFaqs(input: {
 
     const [botRows] = await connection.execute(
       `SELECT id, user_id, bot_name, business_name, business_description, system_prompt,
-              line_channel_secret, line_channel_access_token, credit_balance, status,
+              bot_profile_image_url, line_channel_secret, line_channel_access_token,
+              widget_primary_color, widget_launcher_icon_type, widget_default_icon,
+              widget_custom_icon_url, widget_launcher_shape, widget_public_token, credit_balance, status,
               created_at, updated_at
        FROM bots
        WHERE id = ?
@@ -134,8 +151,14 @@ export async function updateBot(
     business_name: "business_name",
     business_description: "business_description",
     system_prompt: "system_prompt",
+    bot_profile_image_url: "bot_profile_image_url",
     line_channel_secret: "line_channel_secret",
     line_channel_access_token: "line_channel_access_token",
+    widget_primary_color: "widget_primary_color",
+    widget_launcher_icon_type: "widget_launcher_icon_type",
+    widget_default_icon: "widget_default_icon",
+    widget_custom_icon_url: "widget_custom_icon_url",
+    widget_launcher_shape: "widget_launcher_shape",
     credit_balance: "credit_balance",
     status: "status",
   };

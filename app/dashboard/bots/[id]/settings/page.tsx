@@ -4,6 +4,7 @@ import Header from "@/app/components/Header";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/components/LanguageProvider";
+import WidgetAppearanceSettings from "./widget-appearance-settings";
 
 type Bot = {
   id: number;
@@ -17,7 +18,7 @@ type Bot = {
 };
 
 export default function BotSettingsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { language, text } = useLanguage();
+  const { text } = useLanguage();
   const [botId, setBotId] = useState<number | null>(null);
   const [bot, setBot] = useState<Bot | null>(null);
   const [lineChannelSecret, setLineChannelSecret] = useState("");
@@ -27,7 +28,6 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   const [testResult, setTestResult] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
   const [canTest, setCanTest] = useState(false);
-  const [copyResult, setCopyResult] = useState<string | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -50,18 +50,6 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
   }, [botId]);
 
   const webhookUrl = botId && canTest ? `${typeof window !== "undefined" ? window.location.origin : ""}/api/line/webhook/${botId}` : "";
-  const appOrigin = typeof window !== "undefined" ? window.location.origin : "";
-  const embedCode =
-    botId && bot
-      ? `<script src="${appOrigin}/embed/chat-widget.js" data-tenant-id="${botId}" data-bot-name="${escapeAttr(bot.bot_name)}" data-theme-color="#2563EB" data-greeting-message="${language === "th" ? "สวัสดีครับ มีอะไรให้ช่วยไหมครับ" : "Hello! How can I help you today?"}" data-logo-url=""></script>`
-      : "";
-
-  const copyEmbedCode = async () => {
-    if (!embedCode) return;
-    await navigator.clipboard.writeText(embedCode);
-    setCopyResult("copied");
-  };
-
   const saveConnection = async () => {
     if (!botId) return;
     setIsSaving(true);
@@ -100,6 +88,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
       const res = await fetch(`/api/dashboard/bots/${botId}/line-connection-test`, { method: "POST" });
       const data = await res.json();
       setTestResult(data.ok ? "connected" : data.message || text("Connection test failed", "ทดสอบการเชื่อมต่อไม่สำเร็จ"));
+      if (data.ok && data.data?.pictureUrl) window.dispatchEvent(new Event("widget-profile-updated"));
     } finally {
       setIsTesting(false);
     }
@@ -238,28 +227,7 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
           </div>
         </section>
 
-        <section className="mt-6 app-card p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">Website Chat Widget</h2>
-              <p className="mt-2 text-sm leading-6 text-zinc-600">
-                {text("Place this code before the closing body tag on your website to show the chat button in the bottom-right corner.", "นำโค้ดนี้ไปวางก่อนปิดแท็ก body ของเว็บไซต์ลูกค้า เพื่อแสดงปุ่มแชทมุมขวาล่าง")}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={copyEmbedCode}
-              disabled={!embedCode}
-              className="app-button-primary disabled:opacity-40"
-            >
-              Copy Embed Code
-            </button>
-          </div>
-          <pre className="mt-4 overflow-auto rounded-2xl border bg-zinc-950 p-4 text-xs leading-6 text-zinc-100">
-            {embedCode || text("Loading embed code...", "กำลังโหลด embed code...")}
-          </pre>
-          {copyResult && <div className="mt-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{text("Embed code copied.", "คัดลอก embed code แล้ว")}</div>}
-        </section>
+        {botId && <WidgetAppearanceSettings botId={botId} />}
       </main>
 
       {deleteConfirmOpen && (
@@ -289,10 +257,6 @@ export default function BotSettingsPage({ params }: { params: Promise<{ id: stri
       )}
     </div>
   );
-}
-
-function escapeAttr(value: string) {
-  return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 function Step({ title, children }: { title: string; children: React.ReactNode }) {

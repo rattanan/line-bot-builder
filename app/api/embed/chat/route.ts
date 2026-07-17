@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateBotAnswer } from "@/lib/bot-runtime";
+import { getWidgetBotIdByToken } from "@/lib/widget-config";
 
 function corsHeaders() {
   return {
@@ -16,11 +17,13 @@ export async function OPTIONS() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const tenantId = Number(body.tenantId);
+    const widgetToken = String(body.widgetToken || "").trim();
+    const legacyTenantId = Number(body.tenantId);
+    const tenantId = widgetToken ? await getWidgetBotIdByToken(widgetToken) : legacyTenantId;
     const visitorId = String(body.visitorId || "").trim();
     const message = String(body.message || "").trim();
 
-    if (!Number.isFinite(tenantId) || tenantId <= 0) {
+    if (!tenantId || !Number.isSafeInteger(tenantId) || tenantId <= 0) {
       return NextResponse.json({ error: "Invalid tenantId" }, { status: 400, headers: corsHeaders() });
     }
     if (!visitorId) {
