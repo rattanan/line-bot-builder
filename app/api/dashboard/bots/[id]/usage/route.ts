@@ -23,6 +23,12 @@ export async function GET(req: NextRequest, context: RouteContext<"/api/dashboar
     bot: {
       id: bot.id,
       bot_name: bot.bot_name,
+      business_name: bot.business_name,
+      business_description: bot.business_description,
+      system_prompt: bot.system_prompt,
+      bot_profile_image_url: bot.bot_profile_image_url,
+      line_channel_secret: bot.line_channel_secret,
+      line_channel_access_token: bot.line_channel_access_token,
       credit_balance: summary?.remaining_credit ?? 0,
       status: bot.status,
     },
