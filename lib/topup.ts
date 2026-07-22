@@ -206,7 +206,8 @@ export async function evaluateTopupOrder(orderId: number, actor: { adminEmail?: 
     );
     const user = Array.isArray(userRows) ? (userRows[0] as { id: number; credit_balance: number } | undefined) : undefined;
     if (!user) return null;
-    const nextBalance = user.credit_balance + order.credit_amount;
+    const currentBalance = Number(user.credit_balance);
+    const nextBalance = currentBalance + order.credit_amount;
     await connection.execute(
       `UPDATE topup_orders
        SET status = 'verified', slip_transaction_id = ?, slip_transfer_time = ?, verified_at = NOW()
@@ -217,7 +218,7 @@ export async function evaluateTopupOrder(orderId: number, actor: { adminEmail?: 
     await connection.execute(
       `INSERT INTO credit_transactions (user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason, admin_email)
        VALUES (?, 'topup', ?, ?, ?, 'topup_order', ?, ?, ?)`,
-      [order.user_id, order.credit_amount, user.credit_balance, nextBalance, order.id, "PromptPay topup verified", actor.adminEmail ?? null]
+      [order.user_id, order.credit_amount, currentBalance, nextBalance, order.id, "PromptPay topup verified", actor.adminEmail ?? null]
     );
     return { ...order, status: "verified" as const };
   });
@@ -238,14 +239,15 @@ export async function adminReviewTopup(orderId: number, approve: boolean, reason
       const [userRows] = await connection.execute("SELECT id, credit_balance FROM users WHERE id = ? FOR UPDATE", [order.user_id]);
       const user = Array.isArray(userRows) ? (userRows[0] as { id: number; credit_balance: number } | undefined) : undefined;
       if (!user) return null;
-      const nextBalance = user.credit_balance + order.credit_amount;
+      const currentBalance = Number(user.credit_balance);
+      const nextBalance = currentBalance + order.credit_amount;
 
       await connection.execute("UPDATE topup_orders SET status = 'verified', verified_at = NOW(), rejected_reason = NULL WHERE id = ?", [orderId]);
       await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, order.user_id]);
       await connection.execute(
         `INSERT INTO credit_transactions (user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason, admin_email)
          VALUES (?, 'topup', ?, ?, ?, 'topup_order', ?, ?, ?)`,
-        [order.user_id, order.credit_amount, user.credit_balance, nextBalance, order.id, "PromptPay topup approved by admin", "admin-review"]
+      [order.user_id, order.credit_amount, currentBalance, nextBalance, order.id, "PromptPay topup approved by admin", "admin-review"]
       );
       return { ...order, status: "verified" as const };
     });

@@ -24,7 +24,7 @@ export default async function TopupHistoryPage() {
             </div>
             <Link href="/dashboard/topup" className="app-button-primary"><LocalizedText english="Add credits" thai="เติมเครดิต" /></Link>
           </div>
-          <TopupHistoryTable orders={orders} linkToDetails />
+          <TopupHistoryTable orders={orders} linkToDetails staticHeader />
         </section>
       </main>
     </div>

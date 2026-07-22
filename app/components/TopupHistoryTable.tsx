@@ -26,7 +26,7 @@ const statusLabels: Record<TopupOrder["status"], Record<AppLanguage, string>> = 
   expired: { en: "Expired", th: "หมดอายุ" },
 };
 
-export default function TopupHistoryTable({ orders, linkToDetails = false }: { orders: TopupOrder[]; linkToDetails?: boolean }) {
+export default function TopupHistoryTable({ orders, linkToDetails = false, staticHeader = false }: { orders: TopupOrder[]; linkToDetails?: boolean; staticHeader?: boolean }) {
   const { language, text } = useLanguage();
   const locale = language === "th" ? "th-TH" : "en-US";
   const [query, setQuery] = useState("");
@@ -50,7 +50,7 @@ export default function TopupHistoryTable({ orders, linkToDetails = false }: { o
         <label className="relative"><span className="sr-only">{text("Search billing history", "ค้นหาประวัติการชำระเงิน")}</span><AppIcon name="search" className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder={text("Search order or amount", "ค้นหาเลขที่รายการหรือยอดเงิน")} className="w-full py-3 pl-11 pr-4 text-sm" /></label>
         <select aria-label={text("Filter by status", "กรองตามสถานะ")} value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className="px-4 py-3 text-sm"><option value="all">{text("All statuses", "ทุกสถานะ")}</option>{(Object.keys(statusStyles) as TopupOrder["status"][]).map((item) => <option key={item} value={item}>{statusLabels[item][language]}</option>)}</select>
       </div>
-      <div className="overflow-x-auto rounded-[1.5rem] border border-zinc-200 dark:border-white/10">
+      <div className={`${staticHeader ? "app-table-static-header " : ""}overflow-x-auto rounded-[1.5rem] border border-zinc-200 dark:border-white/10`}>
         <table className="min-w-[820px] w-full text-sm">
           <thead className="bg-zinc-50 text-left text-xs uppercase tracking-[0.15em] text-zinc-500">
             <tr><th className="px-4 py-3">{text("Order", "รายการ")}</th><th className="px-4 py-3">{text("Amount", "ยอดเงิน")}</th><th className="px-4 py-3">{text("Credits", "เครดิต")}</th><th className="px-4 py-3">{text("Status", "สถานะ")}</th><th className="px-4 py-3">{text("Created", "สร้างเมื่อ")}</th><th className="px-4 py-3">{text("Completed", "สำเร็จเมื่อ")}</th></tr>

@@ -20,7 +20,6 @@ export async function PUT(req: NextRequest, context: RouteContext<"/api/admin/us
   const fullName = String(body.fullName || "").trim();
   const role = body.role === "ADMIN" ? "ADMIN" : body.role === "USER" ? "USER" : null;
   const creditBalance = Number(body.creditBalance);
-  const creditReason = String(body.creditReason || "").trim();
 
   if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
     return NextResponse.json({ error: "Valid email is required" }, { status: 400 });
@@ -34,9 +33,6 @@ export async function PUT(req: NextRequest, context: RouteContext<"/api/admin/us
   if (!Number.isSafeInteger(creditBalance) || creditBalance < 0 || creditBalance > 1_000_000_000) {
     return NextResponse.json({ error: "Credit must be a whole number between 0 and 1,000,000,000" }, { status: 400 });
   }
-  if (!creditReason || creditReason.length > 255) {
-    return NextResponse.json({ error: "Credit adjustment reason is required and must be 255 characters or fewer" }, { status: 400 });
-  }
   if (id === admin.id && role !== "ADMIN") {
     return NextResponse.json({ error: "You cannot remove your own admin role" }, { status: 400 });
   }
@@ -49,8 +45,6 @@ export async function PUT(req: NextRequest, context: RouteContext<"/api/admin/us
     const credit = await setUserCreditBalance({
       userId: id,
       balance: creditBalance,
-      reason: creditReason,
-      adminEmail: admin.email,
     });
     // Read the committed row back so the client never receives the stale
     // credit_balance that updateUser() loaded before the adjustment.

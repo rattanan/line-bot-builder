@@ -19,6 +19,15 @@ type Order = {
   expires_at: string;
 };
 
+type AdminReview = {
+  id: number;
+  email: string;
+  full_name: string;
+  amount: string;
+  credit_amount: number;
+  status: string;
+};
+
 const packages = [
   { amount: 50, creditAmount: 500 },
   { amount: 100, creditAmount: 1200 },
@@ -46,7 +55,9 @@ export default function TopupPage() {
   const { language, text } = useLanguage();
   const locale = language === "th" ? "th-TH" : "en-US";
   const [orders, setOrders] = useState<Order[]>([]);
+  const [adminReviews, setAdminReviews] = useState<AdminReview[]>([]);
   const [loading, setLoading] = useState(false);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const latestOrder = orders[0] ?? null;
   const activeOrders = useMemo(() => orders.filter((order) => order.status === "pending" || order.status === "uploaded" || order.status === "manual_review"), [orders]);
@@ -61,10 +72,37 @@ export default function TopupPage() {
       .catch(() => {
         if (active) setOrders([]);
       });
+    fetch("/api/admin/topup-reviews")
+      .then(async (res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active) setAdminReviews((data?.reviews || []).filter((review: AdminReview) => review.status === "pending"));
+      })
+      .catch(() => {
+        if (active) setAdminReviews([]);
+      });
     return () => {
       active = false;
     };
   }, []);
+
+  async function approveOrder(orderId: number) {
+    setApprovingId(orderId);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/topup-reviews/${orderId}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "approve" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || text("Unable to approve order", "ไม่สามารถอนุมัติรายการได้"));
+      setAdminReviews((current) => current.filter((review) => review.id !== orderId));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : text("Unable to approve order", "ไม่สามารถอนุมัติรายการได้"));
+    } finally {
+      setApprovingId(null);
+    }
+  }
 
   async function createOrder(amount: number) {
     setLoading(true);
@@ -116,6 +154,28 @@ export default function TopupPage() {
           </div>
         </section>
         {error && <div role="alert" className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-400/20 dark:bg-red-400/10 dark:text-red-300">{error}</div>}
+
+        {adminReviews.length > 0 && (
+          <section className="app-card mt-8 overflow-hidden border-amber-200 dark:border-amber-400/20">
+            <div className="border-b border-amber-200 px-6 py-5 dark:border-amber-400/20">
+              <h2 className="text-lg font-semibold">{text("Pending orders for approval", "รายการรออนุมัติ")}</h2>
+              <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{text("Admin approval adds credits directly to the user's balance.", "การอนุมัติโดย Admin จะเพิ่มเครดิตเข้ายอดผู้ใช้โดยตรง")}</p>
+            </div>
+            <div className="divide-y divide-slate-200 dark:divide-white/10">
+              {adminReviews.map((review) => (
+                <div key={review.id} className="flex flex-col gap-3 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-semibold text-slate-950 dark:text-white">Order #{review.id} · {review.full_name}</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{review.email} · {Number(review.amount).toLocaleString(locale)} {text("THB", "บาท")} · {review.credit_amount.toLocaleString(locale)} {text("credits", "เครดิต")}</p>
+                  </div>
+                  <button type="button" onClick={() => approveOrder(review.id)} disabled={approvingId === review.id} className="app-button-primary min-h-10 px-4 py-2 text-sm disabled:opacity-50">
+                    {approvingId === review.id ? text("Approving...", "กำลังอนุมัติ...") : text("Approve", "อนุมัติ")}
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-8">
           <div className="flex flex-wrap items-end justify-between gap-3">

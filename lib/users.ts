@@ -1,4 +1,4 @@
-import { executeQuery, QueryResult, withTransaction } from "./mysql";
+import { executeQuery, QueryResult } from "./mysql";
 import { createToken, hashPassword, hashToken, verifyPassword } from "./auth";
 
 export type UserRole = "USER" | "ADMIN";
@@ -168,44 +168,13 @@ export async function deleteUser(id: number) {
 export async function setUserCreditBalance(input: {
   userId: number;
   balance: number;
-  reason: string;
-  adminEmail: string;
 }) {
-  return withTransaction(async (connection) => {
-    const [rows] = await connection.execute(
-      "SELECT id, credit_balance FROM users WHERE id = ? FOR UPDATE",
-      [input.userId]
-    );
-    const user = Array.isArray(rows)
-      ? (rows[0] as { id: number; credit_balance: number } | undefined)
-      : undefined;
-    if (!user) return null;
-
-    // mysql2 can return INT columns as strings depending on connection options.
-    // Normalize the locked value before comparing/calculating the adjustment so
-    // the value written to the user and the audit record are always numeric.
-    const currentBalance = Number(user.credit_balance);
-    const amount = input.balance - currentBalance;
-    if (amount === 0) {
-      return { userId: user.id, creditBalance: currentBalance };
-    }
-
-    const [updateResult] = await connection.execute(
-      "UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
-      [input.balance, input.userId]
-    );
-    if (!updateResult || !("affectedRows" in updateResult) || updateResult.affectedRows !== 1) {
-      throw new Error("Unable to update user credit balance");
-    }
-    await connection.execute(
-      `INSERT INTO credit_transactions
-        (user_id, type, amount, balance_before, balance_after, reason, admin_email)
-       VALUES (?, 'adjustment', ?, ?, ?, ?, ?)`,
-      [input.userId, amount, currentBalance, input.balance, input.reason, input.adminEmail]
-    );
-
-    return { userId: user.id, creditBalance: input.balance };
-  });
+  await executeQuery(
+    "UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+    [input.balance, input.userId]
+  );
+  const user = await findUserById(input.userId);
+  return user ? { userId: user.id, creditBalance: Number(user.credit_balance) } : null;
 }
 
 export async function verifyUserCredentials(email: string, password: string) {

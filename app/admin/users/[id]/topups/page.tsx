@@ -27,7 +27,7 @@ export default async function AdminUserTopupsPage({ params }: PageProps<"/admin/
           <span className="mt-5 block text-xs font-medium uppercase tracking-[0.22em] text-zinc-500">Admin · Top-up history</span>
           <h1 className="mt-3 text-3xl font-semibold tracking-tight">{user.full_name}</h1>
           <p className="mt-2 text-sm text-zinc-600">{user.email} · {orders.length} orders</p>
-          <TopupHistoryTable orders={orders} />
+          <TopupHistoryTable orders={orders} staticHeader />
         </section>
       </main>
     </div>

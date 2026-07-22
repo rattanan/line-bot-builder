@@ -21,7 +21,6 @@ type EditState = {
   fullName: string;
   role: "USER" | "ADMIN";
   creditBalance: string;
-  creditReason: string;
 };
 
 export default function UsersManager({ initialUsers, adminId }: { initialUsers: AdminUserRow[]; adminId: number }) {
@@ -34,7 +33,6 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
     fullName: "",
     role: "USER",
     creditBalance: "0",
-    creditReason: "",
   });
   const [busyId, setBusyId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +46,6 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
       fullName: user.full_name,
       role: user.role,
       creditBalance: String(user.total_credit),
-      creditReason: text("Admin credit adjustment", "ปรับเครดิตโดยผู้ดูแล"),
     });
     setError(null);
   }
@@ -183,17 +180,6 @@ export default function UsersManager({ initialUsers, adminId }: { initialUsers: 
                             className="w-full rounded-xl border border-zinc-200 px-3 py-2 tabular-nums"
                             value={edit.creditBalance}
                             onChange={(event) => setEdit((current) => ({ ...current, creditBalance: event.target.value }))}
-                          />
-                        </label>
-                        <label className="grid gap-1">
-                          <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                            {text("Reason", "เหตุผล")}
-                          </span>
-                          <input
-                            aria-label={text("Credit adjustment reason", "เหตุผลการปรับเครดิต")}
-                            className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                            value={edit.creditReason}
-                            onChange={(event) => setEdit((current) => ({ ...current, creditReason: event.target.value }))}
                           />
                         </label>
                       </div>
