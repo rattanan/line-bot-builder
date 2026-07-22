@@ -34,8 +34,8 @@ export async function PUT(req: NextRequest, context: RouteContext<"/api/admin/us
   if (!Number.isSafeInteger(creditBalance) || creditBalance < 0 || creditBalance > 1_000_000_000) {
     return NextResponse.json({ error: "Credit must be a whole number between 0 and 1,000,000,000" }, { status: 400 });
   }
-  if (!creditReason) {
-    return NextResponse.json({ error: "Credit adjustment reason is required" }, { status: 400 });
+  if (!creditReason || creditReason.length > 255) {
+    return NextResponse.json({ error: "Credit adjustment reason is required and must be 255 characters or fewer" }, { status: 400 });
   }
   if (id === admin.id && role !== "ADMIN") {
     return NextResponse.json({ error: "You cannot remove your own admin role" }, { status: 400 });
@@ -52,12 +52,10 @@ export async function PUT(req: NextRequest, context: RouteContext<"/api/admin/us
       reason: creditReason,
       adminEmail: admin.email,
     });
-    return NextResponse.json({
-      user: {
-        ...user,
-        credit_balance: credit?.creditBalance ?? creditBalance,
-      },
-    });
+    // Read the committed row back so the client never receives the stale
+    // credit_balance that updateUser() loaded before the adjustment.
+    const updatedUser = await findUserById(id);
+    return NextResponse.json({ user: updatedUser ?? { ...user, credit_balance: credit?.creditBalance ?? creditBalance } });
   } catch (error) {
     if (isDuplicateEmail(error)) {
       return NextResponse.json({ error: "This email is already in use" }, { status: 409 });

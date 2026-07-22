@@ -181,20 +181,27 @@ export async function setUserCreditBalance(input: {
       : undefined;
     if (!user) return null;
 
-    const amount = input.balance - user.credit_balance;
+    // mysql2 can return INT columns as strings depending on connection options.
+    // Normalize the locked value before comparing/calculating the adjustment so
+    // the value written to the user and the audit record are always numeric.
+    const currentBalance = Number(user.credit_balance);
+    const amount = input.balance - currentBalance;
     if (amount === 0) {
-      return { userId: user.id, creditBalance: user.credit_balance };
+      return { userId: user.id, creditBalance: currentBalance };
     }
 
-    await connection.execute(
+    const [updateResult] = await connection.execute(
       "UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
       [input.balance, input.userId]
     );
+    if (!updateResult || !("affectedRows" in updateResult) || updateResult.affectedRows !== 1) {
+      throw new Error("Unable to update user credit balance");
+    }
     await connection.execute(
       `INSERT INTO credit_transactions
         (user_id, type, amount, balance_before, balance_after, reason, admin_email)
        VALUES (?, 'adjustment', ?, ?, ?, ?, ?)`,
-      [input.userId, amount, user.credit_balance, input.balance, input.reason, input.adminEmail]
+      [input.userId, amount, currentBalance, input.balance, input.reason, input.adminEmail]
     );
 
     return { userId: user.id, creditBalance: input.balance };

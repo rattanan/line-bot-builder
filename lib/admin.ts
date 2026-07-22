@@ -37,7 +37,7 @@ export async function getAdminUsers() {
       u.email_verified_at,
       u.created_at,
       COUNT(DISTINCT b.id) AS bot_count,
-      MAX(u.credit_balance) AS total_credit
+      u.credit_balance AS total_credit
      FROM users u
      LEFT JOIN bots b ON b.user_id = u.id
      GROUP BY u.id, u.email, u.full_name, u.role, u.email_verified_at, u.created_at

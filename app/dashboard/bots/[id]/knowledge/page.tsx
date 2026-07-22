@@ -288,9 +288,9 @@ export default function BotKnowledgeReviewPage({ params }: { params: Promise<{ i
                     </div>
                   </label>
                   <div className="flex flex-wrap gap-2 text-xs">
-                    <span className="rounded-full bg-zinc-100 px-3 py-1">{candidate.source_type}</span>
+                    <span className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300">{candidate.source_type}</span>
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700">{Math.round(Number(candidate.confidence_score) * 100)}%</span>
-                    <span className="rounded-full bg-zinc-100 px-3 py-1">{candidate.language_code}</span>
+                    <span className="rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-violet-700 dark:border-violet-400/20 dark:bg-violet-400/10 dark:text-violet-300">{candidate.language_code}</span>
                   </div>
                 </div>
 
