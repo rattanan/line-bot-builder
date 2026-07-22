@@ -151,7 +151,7 @@ async function tryExtractOcrText(imageUrl: string) {
       },
     ], { temperature: 0, maxTokens: 300 });
     return content;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -168,7 +168,7 @@ export async function uploadTopupSlip(orderId: number, userId: number, file: Fil
   return getTopupOrderById(orderId, userId);
 }
 
-export async function evaluateTopupOrder(orderId: number, actor: { adminEmail?: string } = {}) {
+export async function evaluateTopupOrder(orderId: number) {
   return withTransaction(async (connection) => {
     const [rows] = await connection.execute(
       `SELECT id, user_id, amount, credit_amount, status, qr_payload, slip_image_url, slip_transaction_id, slip_transfer_time, verified_at, rejected_reason, ocr_result, created_at, expires_at
@@ -215,11 +215,6 @@ export async function evaluateTopupOrder(orderId: number, actor: { adminEmail?: 
       [String(ocr.transaction_id), new Date(String(ocr.transfer_time)), orderId]
     );
     await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, order.user_id]);
-    await connection.execute(
-      `INSERT INTO credit_transactions (user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason, admin_email)
-       VALUES (?, 'topup', ?, ?, ?, 'topup_order', ?, ?, ?)`,
-      [order.user_id, order.credit_amount, currentBalance, nextBalance, order.id, "PromptPay topup verified", actor.adminEmail ?? null]
-    );
     return { ...order, status: "verified" as const };
   });
 }
@@ -244,11 +239,6 @@ export async function adminReviewTopup(orderId: number, approve: boolean, reason
 
       await connection.execute("UPDATE topup_orders SET status = 'verified', verified_at = NOW(), rejected_reason = NULL WHERE id = ?", [orderId]);
       await connection.execute("UPDATE users SET credit_balance = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?", [nextBalance, order.user_id]);
-      await connection.execute(
-        `INSERT INTO credit_transactions (user_id, type, amount, balance_before, balance_after, ref_type, ref_id, reason, admin_email)
-         VALUES (?, 'topup', ?, ?, ?, 'topup_order', ?, ?, ?)`,
-      [order.user_id, order.credit_amount, currentBalance, nextBalance, order.id, "PromptPay topup approved by admin", "admin-review"]
-      );
       return { ...order, status: "verified" as const };
     });
   }
