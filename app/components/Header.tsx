@@ -39,6 +39,7 @@ const pageNames: Array<[RegExp, Record<AppLanguage, string>]> = [
   [/\/knowledge$/, { en: "Knowledge", th: "คลังความรู้" }],
   [/\/faqs$/, { en: "FAQ Management", th: "จัดการ FAQ" }],
   [/\/usage$/, { en: "Usage", th: "การใช้งาน" }],
+  [/\/widget-demo$/, { en: "Widget Demo", th: "ทดลอง Widget" }],
   [/\/settings$/, { en: "Agent Settings", th: "ตั้งค่าเอเจนต์" }],
   [/^\/dashboard\/bots/, { en: "Agents", th: "เอเจนต์" }],
   [/^\/dashboard\/insights/, { en: "AI Business Insight", th: "ข้อมูลเชิงลึก AI" }],

@@ -3,7 +3,14 @@ export const DEFAULT_WIDGET_APPEARANCE = {
   launcherIconType: "default" as const,
   defaultIcon: "chat" as const,
   launcherShape: "circle" as const,
+  launcherPosition: "right" as const,
+  horizontalOffset: 20,
+  bottomOffset: 20,
+  showDismissButton: false,
 };
+
+export const WIDGET_OFFSET_MIN = 0;
+export const WIDGET_OFFSET_MAX = 200;
 
 export const WIDGET_DEFAULT_ICONS = [
   "chat",
@@ -17,6 +24,7 @@ export const WIDGET_DEFAULT_ICONS = [
 export type WidgetDefaultIcon = (typeof WIDGET_DEFAULT_ICONS)[number];
 export type WidgetLauncherIconType = "default" | "bot_profile" | "custom";
 export type WidgetLauncherShape = "circle" | "rounded";
+export type WidgetLauncherPosition = "left" | "right";
 
 export type WidgetAppearance = {
   primaryColor: string;
@@ -24,6 +32,10 @@ export type WidgetAppearance = {
   defaultIcon?: WidgetDefaultIcon;
   customIconUrl?: string;
   launcherShape: WidgetLauncherShape;
+  launcherPosition: WidgetLauncherPosition;
+  horizontalOffset: number;
+  bottomOffset: number;
+  showDismissButton: boolean;
 };
 
 export function normalizeHexColor(value: unknown): string | null {
@@ -54,4 +66,14 @@ export function isWidgetIconType(value: unknown): value is WidgetLauncherIconTyp
 
 export function isWidgetShape(value: unknown): value is WidgetLauncherShape {
   return value === "circle" || value === "rounded";
+}
+
+export function isWidgetPosition(value: unknown): value is WidgetLauncherPosition {
+  return value === "left" || value === "right";
+}
+
+export function normalizeWidgetOffset(value: unknown): number | null {
+  const offset = typeof value === "number" ? value : Number(value);
+  if (!Number.isInteger(offset) || offset < WIDGET_OFFSET_MIN || offset > WIDGET_OFFSET_MAX) return null;
+  return offset;
 }
