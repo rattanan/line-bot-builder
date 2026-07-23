@@ -80,7 +80,7 @@ export default function BotUsagePage({ params }: { params: Promise<{ id: string 
                     <p className="text-xs text-zinc-500">{new Date(log.created_at).toLocaleString()}</p>
                   </div>
                   <div className="flex gap-2 text-xs">
-                    <span className="rounded-full bg-zinc-100 px-3 py-1">{log.status}</span>
+                    <span className="rounded-full bg-zinc-100 px-3 py-1 text-zinc-700 dark:bg-zinc-700 dark:text-zinc-100">{log.status}</span>
                     <span className="rounded-full bg-blue-600 px-3 py-1 text-white">{log.source}</span>
                   </div>
                 </div>

@@ -307,7 +307,7 @@ function previewOffset(value: number) {
 }
 
 function IconTypeButton({ selected, disabled, onClick, title, description }: { selected: boolean; disabled?: boolean; onClick: () => void; title: string; description: string }) {
-  return <button type="button" onClick={onClick} disabled={disabled} aria-pressed={selected} className={`min-h-20 rounded-2xl border p-3 text-left transition focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-45 ${selected ? "border-blue-500 bg-blue-50" : "border-zinc-200 bg-white hover:border-zinc-400"}`}><span className="block text-sm font-semibold text-zinc-900">{title}</span><span className="mt-1 block text-xs text-zinc-500">{description}</span></button>;
+  return <button type="button" onClick={onClick} disabled={disabled} aria-pressed={selected} className={`min-h-20 rounded-2xl border p-3 text-left text-zinc-900 transition focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-45 dark:text-zinc-100 ${selected ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40" : "border-zinc-200 bg-white hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"}`}><span className="block text-sm font-semibold text-zinc-900 dark:text-zinc-100">{title}</span><span className="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">{description}</span></button>;
 }
 
 function getSelectedIconUrl(settings: Settings | null) {
